@@ -1,0 +1,249 @@
+openapi: 3.0.0
+
+info:
+  title: weg-li Recommender API
+  description: ""
+  version: Draft
+
+servers:
+  - url: https://api.weg-li.de/v1
+
+tags:
+  - name: user
+    description: Add, remove or update user data.
+  - name: analyze
+    description: Analyze incident data in order to provide recommendations for important report data.
+  - name: report
+    description: Submit a new report.
+
+paths:
+  /user:
+    post:
+      tags:
+      - user
+      description: Create a new user for the analysis platform.
+      responses:
+        200:
+          description: "The operation was successful."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user_id:
+                    type: string
+                    description: The newly created user id of the analysis platform.
+  /user/{user_id}:
+    get:
+      tags:
+      - user
+      description: Retrieves the information that is associated to the provided anonymous user id of the analysis platform.
+      parameters:
+      - name: user_id
+        in: path
+        description: ""
+        required: true
+        schema:
+          type: string
+      responses:
+        200:
+          description: "The operation was successful."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reports:
+                    type: integer
+                    format: int32
+                    description: The total amount of previously via the analysis platform submitted reports.
+        409:
+          description: "An endpoint error occurred."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    put:
+      tags:
+      - user
+      description: Updates the information that is associated to the provided anonymous user id on the analysis platform.
+      parameters:
+      - name: user_id
+        in: path
+        description: ""
+        required: true
+        schema:
+          type: string
+      responses:
+        200:
+          description: "The operation was successful."
+        409:
+          description: "An endpoint error occurred."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      tags:
+      - user
+      description: Deletes the information that is associated to the provided anonymous user id on the analysis platform.
+      parameters:
+      - name: user_id
+        in: path
+        description: "The "
+        required: true
+        schema:
+          type: string
+      responses:
+        200:
+          description: "The operation was successful."
+        409:
+          description: "An endpoint error occurred."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    
+  /analyze/data:
+    post:
+      tags:
+      - analyze
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - time
+              - location
+              properties:
+                user_id:
+                  type: string
+                  description: The user id of the user who is about to issue a new report.
+                  example: tbd
+                time:
+                  type: integer
+                  format: int64
+                  description: The unix time of the violation in milliseconds.
+                  example: 1605481357079
+                location:
+                  description: The location of the violation.
+                  allOf:
+                  - $ref: "#/components/schemas/Location"
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  violation:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Violation"
+                    minItems: 1
+                    maxItems: 5
+                    example:
+                      - no_stopping
+                      - no_parking
+  /analyze/image:
+    put:
+      tags:
+      - analyze
+      responses:
+        200:
+          description: "The operation was successful."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  license_plate:
+                    type: string
+                    description: The license plate of the car in the picture of the violation. This field is not present if no license plate could be detected.
+                    example: B-WL 1234
+                  car:
+                    allOf:
+                      - $ref: "#/components/schemas/Car"
+                    description: Information on the car in the provided picture of the violation.
+        409:
+          description: "An endpoint error occurred."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /report:
+    put:
+      tags:
+        - report
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - report
+              properties:
+                report:
+                  $ref: "#/components/schemas/Report"
+      responses:
+        200:
+          description: "The operation was successful."
+components:
+  schemas:
+    Location:
+      type: object
+      required:
+        - latitude
+        - longitude
+      properties:
+        latitude:
+          type: number
+          format: double
+          description: The latitude value of the location's coordinates.
+          example: 52.550081
+        longitude:
+          type: number
+          format: double
+          description: The longitude value of the location's coordinates.
+          example: 13.370763
+    Car:
+      type: object
+      properties:
+        make:
+          type: string
+          description: The car make.
+          example: Mercedes-Benz
+        model:
+          type: string
+          description: The car model.
+          example: A-Class
+        color:
+          type: string
+          description: The color of the car.
+          example: blue
+    Violation:
+      type: string
+      enum: [no_stopping, no_parking]
+    Report:
+      type: object
+      properties:
+        user_id:
+          type: string
+        location:
+          $ref: "#/components/schemas/Location"
+        violation:
+          $ref: "#/components/schemas/Violation"
+    Error:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+        description:
+          type: string
