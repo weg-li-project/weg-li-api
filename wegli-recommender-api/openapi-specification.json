@@ -40,8 +40,11 @@
                   "type": "object",
                   "properties": {
                     "user_id": {
+                      "$ref": "#/components/schemas/UserID"
+                    },
+                    "access_token": {
                       "type": "string",
-                      "description": "The newly created user id of the analysis platform."
+                      "description": "The corresponding access token for the newly created user account."
                     }
                   }
                 }
@@ -52,103 +55,32 @@
       }
     },
     "/user/{user_id}": {
-      "get": {
-        "tags": [
-          "user"
-        ],
-        "description": "Retrieves the information that is associated to the provided anonymous user id of the analysis platform.",
-        "parameters": [
-          {
-            "name": "user_id",
-            "in": "path",
-            "description": "",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "The operation was successful.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "reports": {
-                      "type": "integer",
-                      "format": "int32",
-                      "description": "The total amount of previously via the analysis platform submitted reports."
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "An endpoint error occurred.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      },
-      "put": {
-        "tags": [
-          "user"
-        ],
-        "description": "Updates the information that is associated to the provided anonymous user id on the analysis platform.",
-        "parameters": [
-          {
-            "name": "user_id",
-            "in": "path",
-            "description": "",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "The operation was successful."
-          },
-          "409": {
-            "description": "An endpoint error occurred.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      },
       "delete": {
         "tags": [
           "user"
         ],
         "description": "Deletes the information that is associated to the provided anonymous user id on the analysis platform.",
+        "security": [
+          {
+            "accessTokenAuth": []
+          }
+        ],
         "parameters": [
           {
             "name": "user_id",
             "in": "path",
-            "description": "The ",
             "required": true,
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/UserID"
             }
           }
         ],
         "responses": {
           "200": {
             "description": "The operation was successful."
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
           },
           "409": {
             "description": "An endpoint error occurred.",
@@ -168,6 +100,11 @@
         "tags": [
           "analyze"
         ],
+        "security": [
+          {
+            "accessTokenAuth": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -180,9 +117,7 @@
                 ],
                 "properties": {
                   "user_id": {
-                    "type": "string",
-                    "description": "The user id of the user who is about to issue a new report.",
-                    "example": "tbd"
+                    "$ref": "#/components/schemas/UserID"
                   },
                   "time": {
                     "type": "integer",
@@ -227,12 +162,15 @@
                 }
               }
             }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
           }
         }
       }
     },
     "/analyze/image": {
-      "put": {
+      "post": {
         "tags": [
           "analyze"
         ],
@@ -280,6 +218,11 @@
         "tags": [
           "report"
         ],
+        "security": [
+          {
+            "accessTokenAuth": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -290,6 +233,9 @@
                   "report"
                 ],
                 "properties": {
+                  "user_id": {
+                    "$ref": "#/components/schemas/UserID"
+                  },
                   "report": {
                     "$ref": "#/components/schemas/Report"
                   }
@@ -307,7 +253,22 @@
     }
   },
   "components": {
+    "responses": {
+      "UnauthorizedError": {
+        "description": "The access token is missing or invalid."
+      }
+    },
+    "securitySchemes": {
+      "accessTokenAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    },
     "schemas": {
+      "UserID": {
+        "type": "string",
+        "example": "550e8400-e29b-11d4-a716-446655440000"
+      },
       "Location": {
         "type": "object",
         "required": [
@@ -359,9 +320,6 @@
       "Report": {
         "type": "object",
         "properties": {
-          "user_id": {
-            "type": "string"
-          },
           "location": {
             "$ref": "#/components/schemas/Location"
           },
