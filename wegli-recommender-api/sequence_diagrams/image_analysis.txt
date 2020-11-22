@@ -1,0 +1,15 @@
+Client->API: GET /analyze/image/upload
+API->Storage: Get signed URLs
+Storage-->API: Signed URLs
+API-->Client: Image token, signed URLs
+
+Client->Storage: Upload images via URLs
+Storage-->Client:
+
+Client->API: GET /analyze/image/{image_token}
+API->Analysis: Image token
+Analysis->Storage: Get images from token
+Storage-->Analysis: Images
+Analysis->Analysis: Analysis
+Analysis-->API: Image data
+API-->Client: Image data
