@@ -11,4 +11,9 @@ User.generate = function () {
     return new User(id, access_token);
 }
 
+User.prototype.validate = function () {
+    // TODO: Add value validation
+    return true;
+}
+
 module.exports = User

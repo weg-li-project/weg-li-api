@@ -1,4 +1,5 @@
-let authorizeUser = require("../core/authorization")
+const User = require("../models/user");
+const Authorization = require("../core/authorization");
 
 /**
  * Controller function for the user deletion endpoint.
@@ -12,14 +13,27 @@ function deleteUser(request, response) {
         return;
     }
 
-    let user_id = request.params.user_id
+    let access_token = Authorization.extractAccessToken(request.headers.authorization);
+
+    if (!access_token) {
+        response.status(401).send();
+        return;
+    }
+
+    let user = new User(request.params.user_id, access_token);
+
+    // Check for valid user data
+    if (!user.validate()) {
+        response.status(400).send();
+        return;
+    }
 
     // Check if request is authorized
-    if (!authorizeUser(user_id, request.headers.authorization)) {
+    if (!Authorization.authorizeUser(user)) {
         response.status(401).send();
     }
 
-    let helper = new UserDeletionHelper(user_id);
+    let helper = new UserDeletionHelper(user);
     helper.deleteUserReportImages();
     helper.deleteUserReports();
     helper.deleteUser();
@@ -27,29 +41,29 @@ function deleteUser(request, response) {
     response.send();
 }
 
-function UserDeletionHelper(user_id) {
-    this.user_id = user_id;
+function UserDeletionHelper(user) {
+    this.user = user;
 }
 
 UserDeletionHelper.prototype = {
-    user_id: null
+    user: null
 }
 
 UserDeletionHelper.prototype.deleteUser = function () {
-    if (this.user_id == null) {
-        throw new Error("No user ID was set")
+    if (this.user == null) {
+
     }
 }
 
 UserDeletionHelper.prototype.deleteUserReportImages = function () {
-    if (this.user_id == null) {
-        throw new Error("No user ID was set")
+    if (this.user == null) {
+
     }
 }
 
 UserDeletionHelper.prototype.deleteUserReports = function () {
-    if (this.user_id == null) {
-        throw new Error("No user ID was set")
+    if (this.user == null) {
+
     }
 }
 
