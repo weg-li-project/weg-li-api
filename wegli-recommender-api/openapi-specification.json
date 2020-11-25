@@ -2,8 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "title": "weg-li Recommender API",
-    "description": "",
-    "version": "Draft"
+    "version": "0.1.0"
   },
   "servers": [
     {
@@ -387,6 +386,9 @@
           },
           "violation": {
             "$ref": "#/components/schemas/Violation"
+          },
+          "image_token": {
+            "type": "string"
           }
         }
       },

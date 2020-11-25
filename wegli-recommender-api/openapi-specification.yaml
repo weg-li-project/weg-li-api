@@ -2,8 +2,7 @@ openapi: 3.0.0
 
 info:
   title: weg-li Recommender API
-  description: ""
-  version: Draft
+  version: 0.1.0
 
 servers:
   - url: https://api.weg-li.de/v1
@@ -248,6 +247,8 @@ components:
           $ref: "#/components/schemas/Location"
         violation:
           $ref: "#/components/schemas/Violation"
+        image_token:
+          type: string
     Error:
       type: object
       required:
