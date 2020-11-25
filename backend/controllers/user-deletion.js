@@ -20,25 +20,30 @@ function deleteUser(request, response) {
         return;
     }
 
-    let user = new User(request.params.user_id, access_token);
+    let user_id = request.params.user_id;
 
     // Check for valid user data
-    if (!user.validate()) {
+    if (!User.validateID(user_id)) {
         response.status(400).send();
         return;
     }
 
+    let user = new User(user_id);
+
     // Check if request is authorized
-    if (!Authorization.authorizeUser(user)) {
-        response.status(401).send();
-    }
+    Authorization.authorizeUser(user, access_token).then(authorized => {
+        if (!authorized) {
+            response.status(401).send();
+            return;
+        }
 
-    let helper = new UserDeletionHelper(user);
-    helper.deleteUserReportImages();
-    helper.deleteUserReports();
-    helper.deleteUser();
+        let helper = new UserDeletionHelper(user);
+        helper.deleteUserReportImages();
+        helper.deleteUserReports();
+        helper.deleteUser();
 
-    response.send();
+        response.send();
+    })
 }
 
 function UserDeletionHelper(user) {

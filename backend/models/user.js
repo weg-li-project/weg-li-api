@@ -1,19 +1,20 @@
 const uuid = require("uuid");
 
-function User(id, access_token) {
+function User(id) {
+    if (!User.validateID(id)) {
+        throw new Error("Invalid user ID")
+    }
+
     this.id = id;
-    this.access_token = access_token
 }
 
 User.generate = function () {
     let id = uuid.v4();
-    let access_token = "TBD";
-    return new User(id, access_token);
+    return new User(id);
 }
 
-User.prototype.validate = function () {
-    // TODO: Add value validation
-    return true;
+User.validateID = function (id) {
+    return uuid.validate(id)
 }
 
 module.exports = User
