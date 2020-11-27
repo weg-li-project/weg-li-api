@@ -1,48 +1,62 @@
-const User = require("../models/user")
-const Authorization = require("../core/authorization")
+const User = require("../models/user");
+const Authorization = require("../core/authorization");
+const UserDatabaseHandle = require("../core/database/database-users");
 
 /**
  * Controller function for the user creation endpoint.
  *
- * @param request
- * @param response
+ * @param {e.Request} request
+ * @param {e.Response} response
+ * @author Lukas Trommer
  */
-function createUser(request, response) {
+async function createUser(request, response) {
     if (request.method !== "GET") {
         response.status(405).send();
         return;
     }
 
-    let helper = new UserCreationHelper();
+    let helper = new _UserCreationHelper();
     helper.generate();
-
-    let access_token = Authorization.generateAccessToken();
-
-    helper.store().then(() => {
-        let user = helper.user;
-
-        response.send({
-            "user_id": user.id,
-            "access_token": access_token
-        })
+    await helper.store();
+    response.send({
+        "user_id": helper.user.id,
+        "access_token": helper.access_token
     })
 }
 
-function UserCreationHelper() { }
+/**
+ * Helper class for creating a new user.
+ * 
+ * @constructor
+ * @private
+ * @author Lukas Trommer
+ */
+function _UserCreationHelper() { }
 
-UserCreationHelper.prototype = {
+_UserCreationHelper.prototype = {
     user: null,
     access_token: null
 }
 
-UserCreationHelper.prototype.generate = function () {
+/**
+ * Generates new user data locally.
+ *
+ * @author Lukas Trommer
+ */
+_UserCreationHelper.prototype.generate = function () {
     this.user = User.generate();
     this.access_token = Authorization.generateAccessToken();
 }
 
-UserCreationHelper.prototype.store = async function () {
-    // TODO: Implement user database insert
-    await Authorization.storeAuthorization(this.user, this.access_token)
+/**
+ * Stores locally generated user data to the database.
+ * @returns {Promise<void>}
+ * @author Lukas Trommer
+ */
+_UserCreationHelper.prototype.store = async function () {
+    let handle = new UserDatabaseHandle();
+    await handle.createUser(this.user);
+    await Authorization.storeAuthorization(this.user, this.access_token);
 }
 
 module.exports = createUser

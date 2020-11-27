@@ -6,6 +6,8 @@ const getImageAnalysisResults = require("./controllers/get-images-analysis-resul
 const createDataAnalysis = require("./controllers/create-data-analysis");
 const createReport = require("./controllers/report-creation");
 
+const { Database, DatabaseConfiguration } = require("./core/database/database")
+
 const router = express.Router();
 
 if (process.env.NODE_ENV === "production") {
@@ -13,6 +15,18 @@ if (process.env.NODE_ENV === "production") {
         req.secure ? next() : res.redirect('https://' + req.headers.host + req.url)
     })
 }
+
+// Initialize database connection
+let databaseConfig = DatabaseConfiguration.fromEnvironment();
+
+if (!databaseConfig) {
+    console.error("No database configuration was provided!")
+} else {
+    let database = new Database(databaseConfig);
+    database.connect();
+    Database.shared = database;
+}
+
 router.use("/users/:user_id", deleteUser)
 router.use("/users", createUser)
 router.get('/analyze/image/upload', getSignedStorageUrls)

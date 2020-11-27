@@ -1,5 +1,6 @@
-const crypto = require("crypto")
-const bcrypt = require("bcrypt")
+const crypto = require("crypto");
+const bcrypt = require("bcrypt");
+const UserDatabaseHandle = require("./database/database-users");
 
 function Authorization() { }
 
@@ -31,7 +32,7 @@ Authorization.hashAccessToken = function (access_token) {
  * otherwise.
  */
 Authorization.compareAccessToken = function (access_token, hash) {
-    return bcrypt.compareSync(access_token, hash)
+    return bcrypt.compareSync(access_token, hash);
 }
 
 /**
@@ -53,13 +54,27 @@ Authorization.extractAccessToken = function (authorization_header) {
 }
 
 /**
- * Stores a user's access token hash.
- * @param user The user object for which the access token hash should be stored.
- * @param access_token The access token hash.
+ * Stores a user's access criterion.
+ *
+ * @param user The User object whose access criterion should be stored.
+ * @param access_token The user's access token.
  * @returns {Promise<void>}
  */
 Authorization.storeAuthorization = async function (user, access_token) {
-    // TODO: Store access token hash in database
+    let dbHandle = new UserDatabaseHandle();
+    let hash = Authorization.hashAccessToken(access_token);
+    await dbHandle.insertUserAccess(user, hash);
+}
+
+/**
+ * Deletes a user's access criterion.
+ *
+ * @param user The user object whose access criterion should be deleted.
+ * @returns {Promise<void>}
+ */
+Authorization.deleteAuthorization = async function (user) {
+    let dbHandle = new UserDatabaseHandle();
+    await dbHandle.deleteUserAccess(user);
 }
 
 /**
@@ -74,11 +89,16 @@ Authorization.authorizeUser = async function (user, access_token) {
     }
 
     // Retrieve access token from database
-    // TODO: Retrieve access token hash from database
-    let access_token_hash = Authorization.hashAccessToken(access_token);
+    let dbHandle = new UserDatabaseHandle();
+    let access_token_hash = await dbHandle.queryUserAccess(user);
 
-    // Compare provided access token to actual access token hash and return
-    return Authorization.compareAccessToken(access_token, access_token_hash);
+    if (access_token_hash) {
+        // Compare provided access token to actual access token hash and return
+        return Authorization.compareAccessToken(access_token, access_token_hash.toString());
+    } else {
+        // No access token could be retrieved
+        return false;
+    }
 }
 
 module.exports = Authorization;

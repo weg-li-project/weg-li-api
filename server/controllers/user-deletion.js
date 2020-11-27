@@ -1,13 +1,14 @@
 const User = require("../models/user");
 const Authorization = require("../core/authorization");
+const UserDatabaseHandle = require("../core/database/database-users");
 
 /**
  * Controller function for the user deletion endpoint.
  *
- * @param request
- * @param response
+ * @param {e.Request} request
+ * @param {e.Response} response
  */
-function deleteUser(request, response) {
+async function deleteUser(request, response) {
     if (request.method !== "DELETE") {
         response.status(405).send();
         return;
@@ -31,45 +32,27 @@ function deleteUser(request, response) {
     let user = new User(user_id);
 
     // Check if request is authorized
-    Authorization.authorizeUser(user, access_token).then(authorized => {
-        if (!authorized) {
-            response.status(401).send();
-            return;
-        }
-
-        let helper = new UserDeletionHelper(user);
-        helper.deleteUserReportImages();
-        helper.deleteUserReports();
-        helper.deleteUser();
-
-        response.send();
-    })
-}
-
-function UserDeletionHelper(user) {
-    this.user = user;
-}
-
-UserDeletionHelper.prototype = {
-    user: null
-}
-
-UserDeletionHelper.prototype.deleteUser = function () {
-    if (this.user == null) {
-
+    if (!(await Authorization.authorizeUser(user, access_token))) {
+        response.status(401).send();
+        return;
     }
+
+    await _deleteUser(user);
+    response.send();
 }
 
-UserDeletionHelper.prototype.deleteUserReportImages = function () {
-    if (this.user == null) {
-
-    }
-}
-
-UserDeletionHelper.prototype.deleteUserReports = function () {
-    if (this.user == null) {
-
-    }
+/**
+ * Helper function for deleting an existing user.
+ *
+ * @param user The User object for the user which should be deleted.
+ * @returns {Promise<void>}
+ * @private
+ * @author Lukas Trommer
+ */
+async function _deleteUser(user) {
+    let dbHandle = new UserDatabaseHandle();
+    await Authorization.deleteAuthorization(user);
+    await dbHandle.deleteUser(user);
 }
 
 module.exports = deleteUser;
