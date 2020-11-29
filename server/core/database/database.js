@@ -138,6 +138,10 @@ Database.prototype.connect = function () {
     })
 }
 
+/**
+ * @returns {*} A new Knex database transaction.
+ * @author Lukas Trommer
+ */
 Database.prototype.newTransaction = function () {
     return this.knex.transaction();
 }

@@ -6,6 +6,7 @@ const dbConst = require("./database-const")
  *
  * @param database
  * @constructor
+ * @author Lukas Trommer
  */
 function UserDatabaseHandle(database = Database.shared) {
     this.database = database;
@@ -17,13 +18,14 @@ function UserDatabaseHandle(database = Database.shared) {
  * @param user The user for which should be inserted.
  * @param transaction The database transaction in which this request will be performed.
  * @returns {Promise<void>}
+ * @author Lukas Trommer
  */
 UserDatabaseHandle.prototype.insertUser = async function (user, transaction = this.database.knex) {
-    let userInsertData = {};
-    userInsertData[dbConst.DB_TABLE_USERS_ID] = user.id;
-    userInsertData[dbConst.DB_TABLE_USERS_CREATION] = this.database.knex.raw("CURRENT_TIMESTAMP");
+    let letInsertData = {};
+    letInsertData[dbConst.DB_TABLE_USERS_ID] = user.id;
+    letInsertData[dbConst.DB_TABLE_USERS_CREATION] = this.database.knex.raw("CURRENT_TIMESTAMP");
 
-    await transaction(dbConst.DB_TABLE_USERS).insert(userInsertData);
+    await transaction(dbConst.DB_TABLE_USERS).insert(letInsertData);
 }
 
 /**
@@ -32,6 +34,7 @@ UserDatabaseHandle.prototype.insertUser = async function (user, transaction = th
  * @param user The user who should be deleted.
  * @param transaction The database transaction in which this request will be performed.
  * @returns {Promise<void>}
+ * @author Lukas Trommer
  */
 UserDatabaseHandle.prototype.deleteUser = async function (user, transaction = this.database.knex) {
     let whereClause = {};
@@ -44,6 +47,7 @@ UserDatabaseHandle.prototype.deleteUser = async function (user, transaction = th
  *
  * @param user The user whose access record should be queried.
  * @returns {Promise<string|null>}
+ * @author Lukas Trommer
  */
 UserDatabaseHandle.prototype.queryUserAccess = async function (user) {
     let whereClause = {};
@@ -63,6 +67,7 @@ UserDatabaseHandle.prototype.queryUserAccess = async function (user) {
  * @param access_token_hash The relating access token hash.
  * @param transaction The database transaction in which this request will be performed.
  * @returns {Promise<void>}
+ * @author Lukas Trommer
  */
 UserDatabaseHandle.prototype.insertUserAccess = async function (user, access_token_hash,
                                                                 transaction = this.database.knex) {
@@ -78,6 +83,7 @@ UserDatabaseHandle.prototype.insertUserAccess = async function (user, access_tok
  * @param user The user whose access record should be deleted.
  * @param transaction The database transaction in which this request will be performed.
  * @returns {Promise<void>}
+ * @author Lukas Trommer
  */
 UserDatabaseHandle.prototype.deleteUserAccess = async function (user, transaction = this.database.knex) {
     let whereClause = {};

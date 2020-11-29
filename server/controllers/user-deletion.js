@@ -8,6 +8,7 @@ const ReportDatabaseHandle = require("../core/database/database-reports");
  *
  * @param {e.Request} request
  * @param {e.Response} response
+ * @author Lukas Trommer
  */
 async function deleteUser(request, response) {
     if (request.method !== "DELETE") {

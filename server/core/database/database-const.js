@@ -1,3 +1,6 @@
+/**
+ * SQL table and column name constants to be used within the database methods.
+ */
 module.exports = {
     DB_TABLE_USERS: "users",
     DB_TABLE_USERS_ID: "id",
