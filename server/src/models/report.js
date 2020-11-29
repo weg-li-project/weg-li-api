@@ -1,5 +1,5 @@
 const uuid = require("uuid");
-const User = require("user")
+const User = require("src/models/user")
 
 /**
  * Class representing a report.
