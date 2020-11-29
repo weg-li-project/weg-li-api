@@ -13,27 +13,27 @@ function UserDatabaseHandle(database = Database.shared) {
 /**
  *
  * @param user
+ * @param transaction
  * @returns {Promise<void>}
  */
-UserDatabaseHandle.prototype.createUser = async function (user) {
-    let knex = this.database.knex;
-
+UserDatabaseHandle.prototype.createUser = async function (user, transaction = this.database.knex) {
     let userInsertData = {};
     userInsertData[dbConst.DB_TABLE_USERS_ID] = user.id;
-    userInsertData[dbConst.DB_TABLE_USERS_CREATION] = knex.raw("CURRENT_TIMESTAMP");
+    userInsertData[dbConst.DB_TABLE_USERS_CREATION] = this.database.knex.raw("CURRENT_TIMESTAMP");
 
-    await knex(dbConst.DB_TABLE_USERS).insert(userInsertData);
+    await transaction(dbConst.DB_TABLE_USERS).insert(userInsertData);
 }
 
 /**
  *
  * @param user
+ * @param transaction
  * @returns {Promise<void>}
  */
-UserDatabaseHandle.prototype.deleteUser = async function (user) {
+UserDatabaseHandle.prototype.deleteUser = async function (user, transaction = this.database.knex) {
     let whereClause = {};
     whereClause[dbConst.DB_TABLE_USERS_ID] = user.id;
-    await this.database.knex(dbConst.DB_TABLE_USERS).where(whereClause).del();
+    await transaction(dbConst.DB_TABLE_USERS).where(whereClause).del();
 }
 
 UserDatabaseHandle.prototype.queryUserAccess = async function (user) {
@@ -51,24 +51,27 @@ UserDatabaseHandle.prototype.queryUserAccess = async function (user) {
  *
  * @param user
  * @param access_token_hash
+ * @param transaction
  * @returns {Promise<void>}
  */
-UserDatabaseHandle.prototype.insertUserAccess = async function (user, access_token_hash) {
+UserDatabaseHandle.prototype.insertUserAccess = async function (user, access_token_hash,
+                                                                transaction = this.database.knex) {
     let insertData = {};
     insertData[dbConst.DB_TABLE_USER_ACCESS_USER_ID] = user.id;
     insertData[dbConst.DB_TABLE_USER_ACCESS_TOKEN] = access_token_hash;
-    await this.database.knex(dbConst.DB_TABLE_USER_ACCESS).insert(insertData);
+    await transaction(dbConst.DB_TABLE_USER_ACCESS).insert(insertData);
 }
 
 /**
  *
  * @param user
+ * @param transaction
  * @returns {Promise<void>}
  */
-UserDatabaseHandle.prototype.deleteUserAccess = async function (user) {
+UserDatabaseHandle.prototype.deleteUserAccess = async function (user, transaction = this.database.knex) {
     let whereClause = {};
     whereClause[dbConst.DB_TABLE_USER_ACCESS_USER_ID] = user.id;
-    await this.database.knex(dbConst.DB_TABLE_USER_ACCESS).where(whereClause).del();
+    await transaction(dbConst.DB_TABLE_USER_ACCESS).where(whereClause).del();
 }
 
 module.exports = UserDatabaseHandle;

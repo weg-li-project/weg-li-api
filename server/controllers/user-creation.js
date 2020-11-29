@@ -50,13 +50,22 @@ _UserCreationHelper.prototype.generate = function () {
 
 /**
  * Stores locally generated user data to the database.
+ *
  * @returns {Promise<void>}
  * @author Lukas Trommer
  */
 _UserCreationHelper.prototype.store = async function () {
-    let handle = new UserDatabaseHandle();
-    await handle.createUser(this.user);
-    await Authorization.storeAuthorization(this.user, this.access_token);
+    let dbHandle = new UserDatabaseHandle();
+    let dbTransaction = await dbHandle.database.newTransaction();
+
+    try {
+        await dbHandle.createUser(this.user, dbTransaction);
+        await Authorization.storeAuthorization(this.user, this.access_token, dbTransaction);
+        dbTransaction.commit();
+    } catch (e) {
+        dbTransaction.rollback();
+        throw e;
+    }
 }
 
 module.exports = createUser

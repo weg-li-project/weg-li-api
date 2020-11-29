@@ -51,8 +51,16 @@ async function deleteUser(request, response) {
  */
 async function _deleteUser(user) {
     let dbHandle = new UserDatabaseHandle();
-    await Authorization.deleteAuthorization(user);
-    await dbHandle.deleteUser(user);
+    let dbTransaction = await dbHandle.database.newTransaction();
+
+    try {
+        await Authorization.deleteAuthorization(user, dbTransaction);
+        await dbHandle.deleteUser(user);
+        dbTransaction.commit();
+    } catch (e) {
+        dbTransaction.rollback();
+        throw e;
+    }
 }
 
 module.exports = deleteUser;

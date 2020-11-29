@@ -138,6 +138,10 @@ Database.prototype.connect = function () {
     })
 }
 
+Database.prototype.newTransaction = function () {
+    return this.knex.transaction();
+}
+
 module.exports = {
     Database: Database,
     DatabaseConfiguration: DatabaseConfiguration

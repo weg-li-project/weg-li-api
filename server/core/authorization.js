@@ -58,12 +58,13 @@ Authorization.extractAccessToken = function (authorization_header) {
  *
  * @param user The User object whose access criterion should be stored.
  * @param access_token The user's access token.
+ * @param transaction
  * @returns {Promise<void>}
  */
-Authorization.storeAuthorization = async function (user, access_token) {
+Authorization.storeAuthorization = async function (user, access_token, transaction = undefined) {
     let dbHandle = new UserDatabaseHandle();
     let hash = Authorization.hashAccessToken(access_token);
-    await dbHandle.insertUserAccess(user, hash);
+    await dbHandle.insertUserAccess(user, hash, transaction);
 }
 
 /**
@@ -72,9 +73,9 @@ Authorization.storeAuthorization = async function (user, access_token) {
  * @param user The user object whose access criterion should be deleted.
  * @returns {Promise<void>}
  */
-Authorization.deleteAuthorization = async function (user) {
+Authorization.deleteAuthorization = async function (user, transaction = undefined) {
     let dbHandle = new UserDatabaseHandle();
-    await dbHandle.deleteUserAccess(user);
+    await dbHandle.deleteUserAccess(user, transaction);
 }
 
 /**
