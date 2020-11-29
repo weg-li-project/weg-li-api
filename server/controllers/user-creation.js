@@ -59,7 +59,7 @@ _UserCreationHelper.prototype.store = async function () {
     let dbTransaction = await dbHandle.database.newTransaction();
 
     try {
-        await dbHandle.createUser(this.user, dbTransaction);
+        await dbHandle.insertUser(this.user, dbTransaction);
         await Authorization.storeAuthorization(this.user, this.access_token, dbTransaction);
         dbTransaction.commit();
     } catch (e) {

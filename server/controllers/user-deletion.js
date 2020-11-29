@@ -1,6 +1,7 @@
 const User = require("../models/user");
 const Authorization = require("../core/authorization");
 const UserDatabaseHandle = require("../core/database/database-users");
+const ReportDatabaseHandle = require("../core/database/database-reports");
 
 /**
  * Controller function for the user deletion endpoint.
@@ -50,12 +51,24 @@ async function deleteUser(request, response) {
  * @author Lukas Trommer
  */
 async function _deleteUser(user) {
-    let dbHandle = new UserDatabaseHandle();
-    let dbTransaction = await dbHandle.database.newTransaction();
+    let dbHandleUser = new UserDatabaseHandle();
+    let dbHandleReport = new ReportDatabaseHandle();
+    let dbTransaction = await dbHandleUser.database.newTransaction();
 
     try {
+        // Retrieve images tokens from user's previous reports
+        let reportImageTokens = await dbHandleReport.queryUserReportImageTokens(user, dbTransaction);
+
+        // Delete images relating to image tokens ins Google Cloud Storage
+        // TODO: Delete relating images from GCloud Storage
+
+        // Delete user's previous reports
+        await dbHandleReport.deleteUserReports(user, dbTransaction);
+
+        // Delete users' authorization and actual user entry in database
         await Authorization.deleteAuthorization(user, dbTransaction);
-        await dbHandle.deleteUser(user);
+        await dbHandleUser.deleteUser(user, dbTransaction);
+
         dbTransaction.commit();
     } catch (e) {
         dbTransaction.rollback();
