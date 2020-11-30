@@ -173,7 +173,7 @@ paths:
                 $ref: "#/components/schemas/Error"
 
   /report:
-    put:
+    post:
       tags:
         - report
       security:
@@ -237,16 +237,20 @@ components:
           type: string
           description: The color of the car.
           example: blue
-    Violation:
-      type: string
-      enum: [no_stopping, no_parking]
     Report:
       type: object
       properties:
+        violation_type:
+          type: number
+          format: int32
+          example: 1
+        time:
+          type: number
+          format: int64
+          example: 1606756404
+          description: The date and time of the violation as Unix timestamp (in seconds since epoch).
         location:
           $ref: "#/components/schemas/Location"
-        violation:
-          $ref: "#/components/schemas/Violation"
         image_token:
           type: string
     Error:
