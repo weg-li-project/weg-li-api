@@ -36,8 +36,8 @@ ReportDatabaseHandle.prototype.insertReport = async function (report, transactio
     insertData[dbConst.DB_TABLE_REPORTS_LOCATION] =
         this.database.knex.raw("ST_MakePoint(" + longitude + ", " + latitude + ")");
 
-    if (report.image_token) {
-        insertData[dbConst.DB_TABLE_REPORTS_IMAGE_TOKEN] = report.image_token;
+    if (report.imageToken) {
+        insertData[dbConst.DB_TABLE_REPORTS_IMAGE_TOKEN] = report.imageToken;
     }
 
     await transaction(dbConst.DB_TABLE_REPORTS).insert(insertData);

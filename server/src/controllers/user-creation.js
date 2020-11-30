@@ -18,7 +18,7 @@ async function createUser(request, response) {
     let helper = new _UserCreationHelper();
     helper.generate();
     await helper.store();
-    response.send({
+    response.json({
         "user_id": helper.user.id,
         "access_token": helper.access_token
     })

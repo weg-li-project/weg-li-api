@@ -27,12 +27,14 @@ if (!databaseConfig) {
     Database.shared = database;
 }
 
-router.use("/users/:user_id", deleteUser)
-router.use("/users", createUser)
-router.get('/analyze/image/upload', getSignedStorageUrls)
-router.get('/analyze/image/:imageToken', getImageAnalysisResults)
-router.post('/analyze/data', createDataAnalysis)
-router.put('/report', createReport)
+router.use(express.json());
+router.use("/users/:user_id", deleteUser);
+router.use("/users", createUser);
+router.get('/analyze/image/upload', getSignedStorageUrls);
+router.get('/analyze/image/:imageToken', getImageAnalysisResults);
+router.post('/analyze/data', createDataAnalysis);
+router.post('/report', createReport);
+
 router.use(function (req, res) {
     res.status(404).send();
 })

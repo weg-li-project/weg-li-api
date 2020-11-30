@@ -3,7 +3,7 @@ const uuid = require("uuid");
 /**
  * Class representing a user.
  *
- * @param id The unique user ID.
+ * @param id {String} The unique user ID.
  * @constructor
  * @author Lukas Trommer
  */
