@@ -1,6 +1,9 @@
 const { Storage } = require('@google-cloud/storage')
+const uuid = require('uuid')
 
 const storage = new Storage()
+const bucket = storage.bucket(BUCKET_NAME)
+const BUCKET_NAME = 'weg-li_images'
 
 /**
  * Responsible for calling Cloud Storage APIs.
@@ -41,6 +44,29 @@ class FileStorage {
 
         return url
     }
+
+    /**
+     * Tries to delete all files identified by the given imageToken
+     * parameter.
+     *
+     * The method throws an error in case the imageToken
+     * has no valid format or the deletion process is canceled.
+     *
+     * @param {String} imageToken - The token follows the structure of an uuid.
+     * @returns {Promise<void>}
+     * @throws Error
+     */
+    static async deleteImagesByToken(imageToken) {
+        if (!uuid.validate(imageToken)) {
+            throw new Error('Invalid image token.')
+        }
+        try {
+            await bucket.deleteFiles({directory: `${imageToken}/`, force: true})
+        } catch (error) {
+            throw new Error(`Couldn't delete all files linked to the provided image token "${imageToken}".`)
+        }
+    }
+
 }
 
 module.exports = FileStorage
