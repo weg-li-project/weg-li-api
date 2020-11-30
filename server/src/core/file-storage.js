@@ -3,19 +3,21 @@ const uuid = require('uuid')
 
 const storage = new Storage()
 const bucket = storage.bucket(BUCKET_NAME)
+const EXPIRATION_TIME = 15 * 60 * 1000 // 15 minutes
 const BUCKET_NAME = 'weg-li_images'
+const DELIMITER = '/'
 
 /**
- * Responsible for calling Cloud Storage APIs.
+ * Responsible for calling Google Cloud Storage APIs.
  */
 class FileStorage {
     static async listFilesByPrefix(prefix, delimiter, bucketName) {
         const options = {
             prefix: prefix[prefix.length - 1] === '/' ? prefix : `${prefix}/`,
-            delimiter: delimiter
+            delimiter: DELIMITER
         }
 
-        const [files] = await storage.bucket(bucketName).getFiles(options)
+        const [files] = await bucket.getFiles(options)
 
         return files.map(file => file.name)
     }
@@ -29,16 +31,14 @@ class FileStorage {
         return urls
     }
 
-    static async generateV4UploadSignedUrl(bucketName, filename) {
-        const minutes = 15 * 60 * 1000 // 15 minutes
+    static async generateV4UploadSignedUrl(filename) {
         const options = {
             version: 'v4',
             action: 'write',
-            expires: Date.now() + minutes,
+            expires: Date.now() + EXPIRATION_TIME,
             contentType: 'image/jpg',
         };
-        const [url] = await storage
-            .bucket(bucketName)
+        const [url] = await bucket
             .file(filename)
             .getSignedUrl(options);
 
@@ -67,6 +67,15 @@ class FileStorage {
         }
     }
 
+    static async getUniqueFolderName() {
+        let folderName = uuid.v4()
+        let files = await FileStorage.listFilesByPrefix(folderName)
+        while (files.length !== 0) {
+            folderName = uuid.v4()
+            files = await FileStorage.listFilesByPrefix(folderName);
+        }
+        return folderName
+    }
 }
 
 module.exports = FileStorage
