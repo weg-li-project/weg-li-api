@@ -1,6 +1,6 @@
 'use strict'
 
-import {validationResult} from "express-validator";
+const {validationResult} = require("express-validator");
 
 /**
  * Middleware for extracting express-validator errors.
@@ -20,4 +20,4 @@ function validate(request, response, next) {
     next()
 }
 
-modules.exports = {validate}
+module.exports = {validate}
