@@ -87,4 +87,30 @@ ReportDatabaseHandle.prototype.deleteUserReports = async function (user, transac
     await transaction(dbConst.DB_TABLE_REPORTS).where(whereClause).del();
 }
 
+/**
+ * Returns records near (100m circle) to given location.
+ *
+ * @param latitude The longitude of location coordinates.
+ * @param longitude The latitude of location coordinates.
+ * @param transaction The database transaction in which this request will be performed.
+ * @returns {Promise<[Array]>} The array of records containing violation type and distance.
+ */
+ReportDatabaseHandle.prototype.queryNearReports = async function (latitude, longitude, transaction = this.database.knex) {
+    let distance = this.database.knex.raw('ST_Distance(location, ST_MakePoint(' + longitude + ', ' + latitude + ')) distance')
+    let selectClause = [dbConst.DB_TABLE_REPORTS_VIOLATION_TYPE, distance]
+
+    let whereClause = this.database.knex.raw('ST_DWithin("location", ST_MakePoint(' + longitude + ', ' + latitude + '), 100)')
+
+    let incidents = []
+
+    let result = await transaction(dbConst.DB_TABLE_REPORTS).select(selectClause).where(whereClause)
+    if (result) {
+        result.forEach(function (record) {
+            incidents.push(record)
+        });
+    }
+
+    return incidents
+}
+
 module.exports = ReportDatabaseHandle;
