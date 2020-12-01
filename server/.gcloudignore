@@ -12,6 +12,8 @@
 # below:
 .git
 .gitignore
+.nyc_output
+.env
 
 .idea
 test
