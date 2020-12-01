@@ -14,9 +14,9 @@ const mockResponse = () => {
 }
 
 describe("getSignedStorageUrl", () => {
-    it("should return status 409 when getUniqueFolderName throws", async () => {
+    it("should return status 409 when getUniqueImageToken throws", async () => {
         rewiremock("../../../src/core/file-storage.js").with({
-            async getUniqueFolderName() {
+            async getUniqueImageToken() {
                 throw new Error()
             }
         })
@@ -34,12 +34,12 @@ describe("getSignedStorageUrl", () => {
         rewiremock.disable()
     })
 
-    it("should return status 409 when generateV4UploadSignedUrls throws", async () => {
+    it("should return status 409 when getUploadUrls throws", async () => {
         rewiremock("../../../src/core/file-storage.js").with({
-            async getUniqueFolderName() {
-                return "Unique Folder Name"
+            async getUniqueImageToken() {
+                return "Unique Image Token"
             },
-            async generateV4UploadSignedUrls(folderName, quantity) {
+            async getUploadUrls(imageToken, quantity) {
                 throw new Error()
             }
         })
@@ -59,10 +59,10 @@ describe("getSignedStorageUrl", () => {
 
     it("should return provided folder name and signed urls", async () => {
         rewiremock("../../../src/core/file-storage.js").with({
-            async getUniqueFolderName() {
-                return "Unique Folder Name"
+            async getUniqueImageToken() {
+                return "Unique Image Token"
             },
-            async generateV4UploadSignedUrls(folderName, quantity) {
+            async getUploadUrls(folderName, quantity) {
                 return Array(quantity).fill("URL")
             }
         })
@@ -74,7 +74,7 @@ describe("getSignedStorageUrl", () => {
         await controller(req, res)
 
         assert.ok(res.json.calledOnce)
-        assert.deepStrictEqual(res.json.firstCall.args, [{token: 'Unique Folder Name', google_cloud_urls: ['URL']}])
+        assert.deepStrictEqual(res.json.firstCall.args, [{token: 'Unique Image Token', google_cloud_urls: ['URL']}])
         rewiremock.disable()
     })
 })

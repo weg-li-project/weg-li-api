@@ -9,18 +9,25 @@ const storage = new Storage()
 const bucket = storage.bucket(BUCKET_NAME)
 
 /**
- * Responsible for calling Google Cloud Storage APIs.
+ * Responsible for handling any operations necessary for
+ * using arbitrary storage solutions specifically meant
+ * for file storage.
+ *
+ * Image tokens are used to identify a group of strictly
+ * related images. The image token is in UUID v4 format.
+ * Moreover, the image token serves as a folder name on
+ * the used storage solution.
  */
 class FileStorage {
     /**
-     * Gets a list of all files stored under a specified prefix.
+     * Gets a list of all files related to the specified image token.
      *
-     * @param {String} prefix - A prefix, typically a folder name, which needs to be matched.
-     * @returns {Promise<*[string]>} Name of all found files.
+     * @param {String} imageToken - An image token in UUID v4 format.
+     * @returns {Promise<string[]>} List of all related files.
      */
-    static async listFilesByPrefix(prefix) {
+    static async getFilesByToken(imageToken) {
         const options = {
-            prefix: prefix[prefix.length - 1] === '/' ? prefix : `${prefix}/`,
+            prefix: imageToken[imageToken.length - 1] === '/' ? imageToken : `${imageToken}/`,
             delimiter: DELIMITER
         }
 
@@ -30,18 +37,18 @@ class FileStorage {
     }
 
     /**
-     * Provides a given amount of signed urls stored in specific folder
-     * on Google Cloud Storage.
+     * Provides a given amount of upload urls and relates it to the
+     * specified imageToken.
      *
-     * @param folderName - Name of folder.
+     * @param imageToken - An image token in UUID v4 format.
      * @param amount - Number of expected signed urls to create.
-     * @returns {Promise<[String]>} Array of signed urls
-     * @see {@link generateV4UploadSignedUrl}
+     * @returns {Promise<string[]>} Array of signed urls
+     * @see {@link getUploadUrl}
      */
-    static async generateV4UploadSignedUrls(folderName, amount) {
+    static async getUploadUrls(imageToken, amount) {
         const urls = []
         for (let i = 0; i < amount; ++i) {
-            const signedUploadUrl = await this.generateV4UploadSignedUrl(`${folderName}/${i.toString()}.jpg`)
+            const signedUploadUrl = await this.getUploadUrl(`${imageToken}/${i.toString()}.jpg`)
             urls.push(signedUploadUrl)
         }
         return urls
@@ -49,12 +56,13 @@ class FileStorage {
 
     /**
      * Signs a given filename to enable arbitrary users to upload
-     * files to a predefined bucket location for a limited time.
+     * files to a predefined storage location for a limited amount
+     * of time.
      *
      * @param {String} filename - Name of the file.
-     * @returns {Promise<string>} Signed Url
+     * @returns {Promise<string>} Upload url
      */
-    static async generateV4UploadSignedUrl(filename) {
+    static async getUploadUrl(filename) {
         const options = {
             version: 'v4',
             action: 'write',
@@ -75,7 +83,7 @@ class FileStorage {
      * The method throws an error in case the imageToken
      * has no valid format or the deletion process is canceled.
      *
-     * @param {String} imageToken - The token follows the structure of an uuid.
+     * @param {String} imageToken - An image token in UUID v4 format.
      * @returns {Promise<void>}
      * @throws {Error}
      */
@@ -91,34 +99,34 @@ class FileStorage {
     }
 
     /**
-     * Creates a unique folder name that doesn't exists yet.
+     * Creates a unique image token that doesn't exists yet.
      *
-     * @returns {Promise<string>} A unique folder name
+     * @returns {Promise<string>} A unique image token
      */
-    static async getUniqueFolderName() {
-        let folderName = uuid.v4()
-        let files = await FileStorage.listFilesByPrefix(folderName)
+    static async getUniqueImageToken() {
+        let imageToken = uuid.v4()
+        let files = await FileStorage.getFilesByToken(imageToken)
         while (files.length !== 0) {
-            folderName = uuid.v4()
-            files = await FileStorage.listFilesByPrefix(folderName);
+            imageToken = uuid.v4()
+            files = await FileStorage.getFilesByToken(imageToken);
         }
-        return folderName
+        return imageToken
     }
 
     /**
-     * Returns all Cloud Storage urls identified by the provided imageToken.
+     * Returns all file urls identified by the provided imageToken.
      *
      * @param imageToken - Image token in UUID v4 format.
-     * @returns {Promise<String[]>} - List of Cloud Storage urls.
+     * @returns {Promise<string[]>} - List of Cloud Storage urls.
      * @throws {Error}
      */
-    static async getCloudStorageUrlsByToken(imageToken) {
+    static async getFileUrlsByToken(imageToken) {
         if (!uuid.validate(imageToken)) {
             throw new Error('Invalid image token.')
         }
         const cloudStorageUrls = []
         try {
-            const fileNames = await this.listFilesByPrefix(imageToken)
+            const fileNames = await this.getFilesByToken(imageToken)
             cloudStorageUrls.concat(fileNames.map(fileName => `gs://${BUCKET_NAME}/${imageToken}${fileName}`))
         } catch (error) {
             throw error
