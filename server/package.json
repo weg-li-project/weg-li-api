@@ -9,6 +9,7 @@
     "bcrypt": "^5.0.0",
     "express": "^4.17.1",
     "express-validator": "^6.7.0",
+    "gaxios": "^4.0.1",
     "knex": "^0.21.12",
     "pg": "^8.5.1",
     "uuid": "^8.3.1"

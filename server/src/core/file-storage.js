@@ -77,7 +77,7 @@ class FileStorage {
      *
      * @param {String} imageToken - The token follows the structure of an uuid.
      * @returns {Promise<void>}
-     * @throws Error
+     * @throws {Error}
      */
     static async deleteImagesByToken(imageToken) {
         if (!uuid.validate(imageToken)) {
@@ -103,6 +103,27 @@ class FileStorage {
             files = await FileStorage.listFilesByPrefix(folderName);
         }
         return folderName
+    }
+
+    /**
+     * Returns all Cloud Storage urls identified by the provided imageToken.
+     *
+     * @param imageToken - Image token in UUID v4 format.
+     * @returns {Promise<String[]>} - List of Cloud Storage urls.
+     * @throws {Error}
+     */
+    static async getCloudStorageUrlsByToken(imageToken) {
+        if (!uuid.validate(imageToken)) {
+            throw new Error('Invalid image token.')
+        }
+        const cloudStorageUrls = []
+        try {
+            const fileNames = await this.listFilesByPrefix(imageToken)
+            cloudStorageUrls.concat(fileNames.map(fileName => `gs://${BUCKET_NAME}/${imageToken}${fileName}`))
+        } catch (error) {
+            throw error
+        }
+        return cloudStorageUrls
     }
 }
 
