@@ -11,6 +11,7 @@ const getEndpoint = (imageToken) => ENDPOINT.replace(":imageToken", imageToken)
 
 describe(`GET ${ENDPOINT}`, () => {
     let app
+    let throws = false
 
     it("should return suggestions when provided a valid UUID v4", async () => {
         await request(app)
@@ -41,9 +42,19 @@ describe(`GET ${ENDPOINT}`, () => {
             .expect(400)
     });
 
+    it("should return an error when an used function throws", async () => {
+        throws = true
+        await request(app)
+            .get(getEndpoint(uuid.v4()))
+            .send()
+            .expect(400)
+        throws = false
+    });
+
     beforeEach(() => {
         rewiremock("../../src/core/file-storage.js").with({
             async getFileUrlsByToken(imageToken) {
+                if (throws) throw new Error()
                 return Array(1).fill(`gs://${imageToken}/0.jpg`)
             }
         })
