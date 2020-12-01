@@ -29,7 +29,8 @@ ReportDatabaseHandle.prototype.insertReport = async function (report, transactio
         insertData[dbConst.DB_TABLE_REPORTS_USER_ID] = report.user.id;
     }
 
-    insertData[dbConst.DB_TABLE_REPORTS_TIME] = report.time;
+    insertData[dbConst.DB_TABLE_REPORTS_VIOLATION_TYPE] = report.violationType;
+    insertData[dbConst.DB_TABLE_REPORTS_TIME] = this.database.knex.raw("TO_TIMESTAMP(" + report.time + ")");
 
     let latitude = report.location.latitude;
     let longitude = report.location.longitude;
