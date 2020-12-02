@@ -11,7 +11,7 @@ describe("User", function () {
 
     describe("#generate", function () {
         it('should return a new User object with valid ID', function () {
-            assert.strictEqual(uuid.validate(User.generate().id), true);
+            assert.strictEqual(User.validateID(User.generate().id), true);
         });
     });
 

@@ -10,4 +10,8 @@ function ErrorResponse(type, description) {
     return { error: type, description: description }
 }
 
+exports.errors = {
+    UNKNOWN_IMAGE_TOKEN: ErrorResponse("unknown_image_token", "The provided image token cannot be resolved.")
+}
+
 module.exports = ErrorResponse

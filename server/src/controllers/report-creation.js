@@ -1,4 +1,5 @@
 const uuid = require("uuid");
+const { errors } = require("../core/error-response")
 const Authorization = require("../core/authorization");
 const ReportDatabaseHandle = require("../core/database/database-reports");
 const User = require("../models/user");
@@ -62,11 +63,7 @@ async function createReport(request, response) {
     }
 
     if (!helper.resolveImageToken()) {
-        response.status(409).json({
-            error: "unknown_image_token",
-            description: "The provided image token cannot be resolved."
-        });
-
+        response.status(409).json(errors.UNKNOWN_IMAGE_TOKEN);
         return;
     }
 
@@ -96,7 +93,7 @@ _ReportCreationHelper.prototype = {
 /**
  * Validates and sets the time of the violation.
  *
- * @param time {Number} The date and time of the violation as Unix timestamp (in milliseconds since epoch).
+ * @param time {Number} The date and time of the violation as Unix timestamp (in seconds since epoch).
  * @returns {boolean} <code>true</code> if the time is valid and was set, <code>false</code> otherwise.
  * @author Lukas Trommer
  */
