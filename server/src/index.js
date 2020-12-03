@@ -32,8 +32,8 @@ if (!databaseConfig) {
 }
 
 router.use(express.json())
-router.use("/users/:user_id", deleteUser)
-router.use("/users", createUser)
+router.use("/users/:user_id", deleteUser.validator, deleteUser.controller)
+router.use("/users", createUser.controller)
 router.get(
   "/analyze/image/upload",
   [query("quantity").exists().isInt({ min: 1, max: 5 })],
@@ -46,11 +46,17 @@ router.get(
   validate,
   getImageAnalysisResults
 )
+
 router.post("/analyze/data", createDataAnalysis)
-router.post("/report", createReport)
+router.post("/report", createReport.validator, createReport.controller);
 
 router.use(function (req, res) {
   res.status(404).send()
 })
+
+router.use(function (err, req, res, next) {
+  console.log(err.stack);
+  res.status(500).send();
+});
 
 exports.api = router

@@ -1,3 +1,4 @@
+const wrapper = require("./assets/wrapper")
 const User = require("../models/user");
 const Authorization = require("../core/authorization");
 const UserDatabaseHandle = require("../core/database/database-users");
@@ -9,20 +10,18 @@ const UserDatabaseHandle = require("../core/database/database-users");
  * @param {e.Response} response
  * @author Lukas Trommer
  */
-async function createUser(request, response) {
-    if (request.method !== "GET") {
-        response.status(405).send();
-        return;
-    }
-
+async function controller(request, response) {
     let helper = new _UserCreationHelper();
     helper.generate();
     await helper.store();
+
     response.json({
         "user_id": helper.user.id,
         "access_token": helper.access_token
     })
 }
+
+exports.controller = wrapper(controller);
 
 /**
  * Helper class for creating a new user.
@@ -67,5 +66,3 @@ _UserCreationHelper.prototype.store = async function () {
         throw e;
     }
 }
-
-module.exports = createUser

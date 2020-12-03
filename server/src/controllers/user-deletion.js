@@ -1,47 +1,60 @@
+const { StatusCode } = require("status-code-enum")
+
+const wrapper = require("./assets/wrapper");
 const User = require("../models/user");
 const Authorization = require("../core/authorization");
 const UserDatabaseHandle = require("../core/database/database-users");
 const ReportDatabaseHandle = require("../core/database/database-reports");
 
+const REQUEST_PARAM_USER_ID = "user_id";
+
+/**
+ * Validator function the user deletion endpoint.
+ *
+ * @param request {e.Request}
+ * @param response {e.Response}
+ * @author Lukas Trommer
+ */
+function validator(request, response) {
+    // Check if access token authorization is present
+    if (!Authorization.validateAuthorizationHeader(request.headers.authorization)) {
+        response.status(StatusCode.ClientErrorUnauthorized).send();
+        return;
+    }
+
+    let userID = request.params[REQUEST_PARAM_USER_ID];
+
+    // Check for valid user data
+    if (!User.validateID(userID)) {
+        response.status(StatusCode.ClientErrorBadRequest).send();
+    }
+}
+
+exports.validator = wrapper(validator);
+
 /**
  * Controller function for the user deletion endpoint.
  *
- * @param {e.Request} request
- * @param {e.Response} response
+ * @param request {e.Request}
+ * @param response {e.Response}
  * @author Lukas Trommer
  */
-async function deleteUser(request, response) {
-    if (request.method !== "DELETE") {
-        response.status(405).send();
-        return;
-    }
-
+async function controller(request, response) {
     let access_token = Authorization.extractAccessToken(request.headers.authorization);
-
-    if (!access_token) {
-        response.status(401).send();
-        return;
-    }
-
-    let user_id = request.params.user_id;
-
-    // Check for valid user data
-    if (!User.validateID(user_id)) {
-        response.status(400).send();
-        return;
-    }
-
-    let user = new User(user_id);
+    let userID = request.params[REQUEST_PARAM_USER_ID];
+    let user = new User(userID);
 
     // Check if request is authorized
     if (!(await Authorization.authorizeUser(user, access_token))) {
-        response.status(401).send();
+        response.status(StatusCode.ClientErrorUnauthorized).send();
         return;
     }
 
     await _deleteUser(user);
     response.send();
 }
+
+exports.controller = wrapper(controller);
 
 /**
  * Helper function for deleting an existing user.
@@ -76,5 +89,3 @@ async function _deleteUser(user) {
         throw e;
     }
 }
-
-module.exports = deleteUser;

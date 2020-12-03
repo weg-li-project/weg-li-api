@@ -2,6 +2,9 @@ const crypto = require("crypto");
 const bcrypt = require("bcrypt");
 const UserDatabaseHandle = require("./database/database-users");
 
+const HTTP_HEADER_MATCH_REGEX = "^Bearer .+$";
+const HTTP_HEADER_EXTRACT_REGEX = "^Bearer (.+)$";
+
 function Authorization() { }
 
 /**
@@ -35,6 +38,12 @@ Authorization.compareAccessToken = function (access_token, hash) {
     return bcrypt.compareSync(access_token, hash);
 }
 
+Authorization.validateAuthorizationHeader = function (authorization_header) {
+    if (authorization_header) {
+        return authorization_header.match(HTTP_HEADER_MATCH_REGEX);
+    }
+}
+
 /**
  * Extracts the access token from the Authorization header in an HTTP requests.
  *
@@ -43,7 +52,7 @@ Authorization.compareAccessToken = function (access_token, hash) {
  */
 Authorization.extractAccessToken = function (authorization_header) {
     if (authorization_header) {
-        let matches = authorization_header.match("^Bearer (.+)$");
+        let matches = authorization_header.match(HTTP_HEADER_EXTRACT_REGEX);
 
         if (matches && matches.length > 1) {
             return matches[1];
@@ -71,6 +80,7 @@ Authorization.storeAuthorization = async function (user, access_token, transacti
  * Deletes a user's access criterion.
  *
  * @param user The user object whose access criterion should be deleted.
+ * @param transaction
  * @returns {Promise<void>}
  */
 Authorization.deleteAuthorization = async function (user, transaction = undefined) {
