@@ -1,6 +1,10 @@
+const {param} = require("express-validator");
+const {validate} = require("./assets/validate");
+
 const gaxios = require("gaxios")
 const FileStorage = require("../core/file-storage");
 const ErrorResponse = require("../core/error-response");
+const wrapper = require("./assets/wrapper");
 
 const IMAGE_ANALYSIS_ENDPOINT = process.env.IMAGE_ANAYLSIS_ENDPOINT
 
@@ -15,15 +19,13 @@ const IMAGE_ANALYSIS_ENDPOINT = process.env.IMAGE_ANAYLSIS_ENDPOINT
 async function getImageAnalysisResults(request, response) {
     const imageToken = request.params.imageToken
 
-    try {
-        const fileUrls = await FileStorage.getFileUrlsByToken(imageToken)
-        const data = {"google_cloud_urls": fileUrls}
-        const options = {method: "POST", url: IMAGE_ANALYSIS_ENDPOINT, data: data}
-        const suggestions = await gaxios.request(options)
-        response.json(suggestions)
-    } catch(error) {
-        response.status(400).json(ErrorResponse(error.name, error.message))
-    }
+    const fileUrls = await FileStorage.getFileUrlsByToken(imageToken)
+    const data = {"google_cloud_urls": fileUrls}
+    const options = {method: "POST", url: IMAGE_ANALYSIS_ENDPOINT, data: data}
+    const suggestions = await gaxios.request(options)
+    response.json(suggestions)
 }
 
-module.exports = getImageAnalysisResults
+const validator = [param("imageToken").exists().isUUID("4"), validate];
+
+module.exports = {controller: wrapper(getImageAnalysisResults), validator: validator}

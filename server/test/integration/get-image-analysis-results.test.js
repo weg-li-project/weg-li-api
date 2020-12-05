@@ -3,15 +3,17 @@ const uuid = require("uuid")
 
 const rewiremock = require("rewiremock/node")
 const request = require("supertest")
+const sinon = require('sinon');
 
 require("./set-environment")()
+console.error = sinon.stub()
 
 const ENDPOINT = "/analyze/image/:imageToken"
 const getEndpoint = (imageToken) => ENDPOINT.replace(":imageToken", imageToken)
 
 describe(`GET ${ENDPOINT}`, () => {
     let app
-    let throws = false
+    let fileStorage = {}
 
     it("should return suggestions when provided a valid UUID v4", async () => {
         await request(app)
@@ -42,22 +44,17 @@ describe(`GET ${ENDPOINT}`, () => {
             .expect(400)
     });
 
-    it("should return an error when an used function throws", async () => {
-        throws = true
+    it("should return an error when file storage throws", async () => {
+        fileStorage.getFileUrlsByToken = () => { throw new Error() }
         await request(app)
             .get(getEndpoint(uuid.v4()))
             .send()
-            .expect(400)
-        throws = false
+            .expect(500)
     });
 
     beforeEach(() => {
-        rewiremock("../../src/core/file-storage.js").with({
-            async getFileUrlsByToken(imageToken) {
-                if (throws) throw new Error()
-                return Array(1).fill(`gs://${imageToken}/0.jpg`)
-            }
-        })
+        fileStorage.getFileUrlsByToken = (imageToken) => Array(1).fill(`gs://${imageToken}/0.jpg`)
+        rewiremock("../../src/core/file-storage.js").with(fileStorage)
         rewiremock("gaxios").with({
             async request(options) {
                 return {suggestions: {}}
@@ -69,6 +66,7 @@ describe(`GET ${ENDPOINT}`, () => {
     })
 
     afterEach(() => {
+        fileStorage = {}
         rewiremock.disable()
     })
 })
