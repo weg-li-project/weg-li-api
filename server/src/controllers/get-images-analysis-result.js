@@ -6,7 +6,7 @@ const FileStorage = require("../core/file-storage");
 const ErrorResponse = require("../core/error-response");
 const wrapper = require("./assets/wrapper");
 
-const IMAGE_ANALYSIS_ENDPOINT = process.env.IMAGE_ANAYLSIS_ENDPOINT
+const IMAGE_ANALYSIS_ENDPOINT = process.env.IMAGE_ANALYSIS_ENDPOINT
 
 /**
  * Controller function for the image analysis endpoint.
@@ -22,7 +22,9 @@ async function getImageAnalysisResults(request, response) {
     const fileUrls = await FileStorage.getFileUrlsByToken(imageToken)
     const data = {"google_cloud_urls": fileUrls}
     const options = {method: "POST", url: IMAGE_ANALYSIS_ENDPOINT, data: data}
-    const suggestions = await gaxios.request(options)
+    const imagesAnalysisResponse = await gaxios.request(options)
+    const suggestions = imagesAnalysisResponse.data
+
     response.json(suggestions)
 }
 

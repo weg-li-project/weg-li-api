@@ -145,7 +145,7 @@ class FileStorage {
         const cloudStorageUrls = []
         try {
             const fileNames = await this.getFilesByToken(imageToken)
-            cloudStorageUrls.concat(fileNames.map(fileName => `gs://${BUCKET_NAME}/${imageToken}${fileName}`))
+            cloudStorageUrls.push(...fileNames.map(fileName => `gs://${BUCKET_NAME}/${fileName}`))
         } catch (error) {
             throw error
         }
