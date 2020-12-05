@@ -57,7 +57,7 @@ describe(`GET ${ENDPOINT}`, () => {
         rewiremock("../../src/core/file-storage.js").with(fileStorage)
         rewiremock("gaxios").with({
             async request(options) {
-                return {suggestions: {}}
+                return {data: {suggestions: {}}}
             }
         })
         rewiremock.enable()

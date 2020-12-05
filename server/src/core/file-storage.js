@@ -67,7 +67,7 @@ class FileStorage {
             version: 'v4',
             action: 'write',
             expires: Date.now() + EXPIRATION_TIME,
-            contentType: 'image/jpg',
+            contentType: 'image/jpeg',
         };
         const [url] = await bucket
             .file(filename)
