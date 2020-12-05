@@ -77,6 +77,24 @@ class FileStorage {
     }
 
     /**
+     * Tries to delete all files identified by the given image tokens.
+     *
+     * The method throws an error in case the deletion process is canceled.
+     *
+     * @param imageTokens - A list of image tokens in UUID v4 format.
+     * @returns {Promise<void>}
+     */
+    static async deleteImagesByTokens(imageTokens) {
+        for (let token of imageTokens) {
+            try {
+                await this.deleteImagesByToken(token)
+            } catch (error) {
+                throw new Error(`Couldn't delete all files linked to the provided image tokens.`)
+            }
+        }
+    }
+
+    /**
      * Tries to delete all files identified by the given imageToken
      * parameter.
      *
