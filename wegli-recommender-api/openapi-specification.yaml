@@ -19,7 +19,7 @@ paths:
   /user:
     post:
       tags:
-      - user
+        - user
       description: Create a new user for the analysis platform.
       responses:
         200:
@@ -37,16 +37,16 @@ paths:
   /user/{user_id}:
     delete:
       tags:
-      - user
+        - user
       description: Deletes the information that is associated to the provided anonymous user id on the analysis platform.
       security:
         - accessTokenAuth: []
       parameters:
-      - name: user_id
-        in: path
-        required: true
-        schema:
-          $ref: "#/components/schemas/UserID"
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/UserID"
       responses:
         200:
           description: "The operation was successful."
@@ -58,11 +58,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-    
   /analyze/data:
     post:
       tags:
-      - analyze
+        - analyze
       security:
         - accessTokenAuth: []
       requestBody:
@@ -72,8 +71,8 @@ paths:
             schema:
               type: object
               required:
-              - time
-              - location
+                - time
+                - location
               properties:
                 user_id:
                   $ref: "#/components/schemas/UserID"
@@ -85,7 +84,7 @@ paths:
                 location:
                   description: The location of the violation.
                   allOf:
-                  - $ref: "#/components/schemas/Location"
+                    - $ref: "#/components/schemas/Location"
       responses:
         200:
           description: ""
@@ -97,7 +96,7 @@ paths:
                   violation:
                     type: array
                     items:
-                      $ref: "#/components/schemas/Violation"
+                      type: string
                     minItems: 1
                     maxItems: 5
                     example:
@@ -155,14 +154,8 @@ paths:
               schema:
                 type: object
                 properties:
-                  license_plate:
-                    type: string
-                    description: The license plate of the car in the picture of the violation. This field is not present if no license plate could be detected.
-                    example: B-WL 1234
-                  car:
-                    allOf:
-                      - $ref: "#/components/schemas/Car"
-                    description: Information on the car in the provided picture of the violation.
+                  suggestions:
+                    $ref: "#/components/schemas/Suggestions"
         404:
           description: "No image(s) could be found for the provided token."
         409:
@@ -171,7 +164,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-
   /report:
     post:
       tags:
@@ -194,6 +186,7 @@ paths:
       responses:
         200:
           description: "The operation was successful."
+
 components:
   responses:
     UnauthorizedError:
@@ -222,21 +215,33 @@ components:
           format: double
           description: The longitude value of the location's coordinates.
           example: 13.370763
-    Car:
+    Suggestions:
       type: object
       properties:
+        license_plate_number:
+          type: array
+          items:
+            type: string
+          description: Suggestions for the license plate number of the vehicle in the pictures ordered by confidence. Empty list when no license plate number recognized.
+          example: [ "B-WL 1234", "KA KK 3455" ]
         make:
-          type: string
-          description: The car make.
-          example: Mercedes-Benz
+          type: array
+          items:
+            type: string
+          description: Suggestions for the make of the vehicle in the pictures ordered by confidence. Empty list when no make recognized.
+          example: ["Mercedes-Benz"]
         model:
-          type: string
-          description: The car model.
-          example: A-Class
+          type: array
+          items:
+            type: string
+          description: Suggestions for the model of the vehicle in the pictures ordered by confidence. Empty list when no model recognized.
+          example: ["A-Class"]
         color:
-          type: string
-          description: The color of the car.
-          example: blue
+          type: array
+          items:
+            type: string
+          description: Suggestions for the color of the vehicle in the pictures ordered by confidence. Empty list when no color recognized.
+          example: ["blue", "white"]
     Report:
       type: object
       properties:
