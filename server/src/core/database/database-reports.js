@@ -89,29 +89,40 @@ ReportDatabaseHandle.prototype.deleteUserReports = async function (user, transac
 }
 
 /**
- * Returns records near (100m circle) to given location.
+ * Returns records in range of given location.
  *
- * @param latitude The longitude of location coordinates.
- * @param longitude The latitude of location coordinates.
+ * @param location The center location of ROI.
+ * @param radius Maximum distance to points that should be taken into account.
  * @param transaction The database transaction in which this request will be performed.
  * @returns {Promise<[Array]>} The array of records containing violation type and distance.
+ * @author Niclas Kühnapfel
  */
-ReportDatabaseHandle.prototype.queryNearReports = async function (latitude, longitude, transaction = this.database.knex) {
-    let distance = this.database.knex.raw('ST_Distance(location, ST_MakePoint(' + longitude + ', ' + latitude + ')) distance')
-    let selectClause = [dbConst.DB_TABLE_REPORTS_VIOLATION_TYPE, distance]
+ReportDatabaseHandle.prototype.queryNearReports = async function (location, radius, transaction = this.database.knex) {
+    let point = 'ST_MakePoint(' + location.longitude + ', ' + location.latitude + ')';
+    let distance = this.database.knex.raw('ST_Distance(location, ' + point + ') distance');
+    let coordinates = this.database.knex.raw('ST_X(location::geometry), ST_Y(location::geometry)')
 
-    let whereClause = this.database.knex.raw('ST_DWithin("location", ST_MakePoint(' + longitude + ', ' + latitude + '), 100)')
+    let selectClause = [dbConst.DB_TABLE_REPORTS_VIOLATION_TYPE, distance, coordinates];
+    let whereClause = this.database.knex.raw('ST_DWithin(location, ' + point + ', ' + radius + ')');
 
-    let incidents = []
+    return transaction(dbConst.DB_TABLE_REPORTS).select(selectClause).where(whereClause);
+}
 
-    let result = await transaction(dbConst.DB_TABLE_REPORTS).select(selectClause).where(whereClause)
-    if (result) {
-        result.forEach(function (record) {
-            incidents.push(record)
-        });
-    }
+/**
+ * Returns the n most common violation types.
+ *
+ * @param n Number of returned values.
+ * @param transaction The database transaction in which this request will be performed.
+ * @returns {Promise<Array>} The array of records containing violation type and count.
+ * @author Niclas Kühnapfel
+ */
+ReportDatabaseHandle.prototype.getMostCommonViolations = async function (n, transaction = this.database.knex) {
+    let whereNotNullClause = dbConst.DB_TABLE_REPORTS_VIOLATION_TYPE;
+    let groupClause = dbConst.DB_TABLE_REPORTS_VIOLATION_TYPE;
+    let selectClause = dbConst.DB_TABLE_REPORTS_VIOLATION_TYPE;
 
-    return incidents
+    return transaction(dbConst.DB_TABLE_REPORTS).select(selectClause).count('* as count')
+        .whereNotNull(whereNotNullClause).groupBy(groupClause).orderBy('count', 'desc').limit(n);
 }
 
 module.exports = ReportDatabaseHandle;
