@@ -67,13 +67,31 @@ class FileStorage {
             version: 'v4',
             action: 'write',
             expires: Date.now() + EXPIRATION_TIME,
-            contentType: 'image/jpg',
+            contentType: 'image/jpeg',
         };
         const [url] = await bucket
             .file(filename)
             .getSignedUrl(options);
 
         return url
+    }
+
+    /**
+     * Tries to delete all files identified by the given image tokens.
+     *
+     * The method throws an error in case the deletion process is canceled.
+     *
+     * @param imageTokens - A list of image tokens in UUID v4 format.
+     * @returns {Promise<void>}
+     */
+    static async deleteImagesByTokens(imageTokens) {
+        for (let token of imageTokens) {
+            try {
+                await this.deleteImagesByToken(token)
+            } catch (error) {
+                throw new Error(`Couldn't delete all files linked to the provided image tokens.`)
+            }
+        }
     }
 
     /**
@@ -127,7 +145,7 @@ class FileStorage {
         const cloudStorageUrls = []
         try {
             const fileNames = await this.getFilesByToken(imageToken)
-            cloudStorageUrls.concat(fileNames.map(fileName => `gs://${BUCKET_NAME}/${imageToken}${fileName}`))
+            cloudStorageUrls.push(...fileNames.map(fileName => `gs://${BUCKET_NAME}/${fileName}`))
         } catch (error) {
             throw error
         }

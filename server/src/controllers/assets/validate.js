@@ -4,8 +4,8 @@ const {validationResult} = require("express-validator");
 
 /**
  * Middleware for extracting express-validator errors.
- * Returns them if existent in a readable format to
- * the client.
+ * Returns them in a readable format to the client if
+ * existent.
  *
  * @param {e.Request} request - Express request object
  * @param {e.Response} response - Express response object

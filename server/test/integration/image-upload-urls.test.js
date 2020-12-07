@@ -2,13 +2,16 @@ const express = require("express")
 
 const rewiremock = require("rewiremock/node")
 const request = require("supertest")
+const sinon = require('sinon');
 
 require("./set-environment")()
+console.error = sinon.stub()
 
 const ENDPOINT = "/analyze/image/upload"
 
 describe(`GET ${ENDPOINT}`, () => {
     let app
+    let fileStorage = {}
 
     it("should return two upload urls when provided with quantity 2", async () => {
         await request(app)
@@ -58,21 +61,28 @@ describe(`GET ${ENDPOINT}`, () => {
             .expect(400)
     });
 
+    it("should return an error when FileStorage throws an error", async () => {
+        fileStorage.getUniqueImageToken = () => {
+            throw new Error()
+        }
+        await request(app)
+            .get(ENDPOINT)
+            .query({quantity: 2})
+            .send()
+            .expect(500)
+    });
+
     beforeEach(() => {
-        rewiremock("../../src/core/file-storage.js").with({
-            async getUniqueImageToken() {
-               return "Unique Image Token"
-            },
-            async getUploadUrls(imageToken, quantity) {
-                return Array(quantity).fill("URL")
-            }
-        })
+        fileStorage.getUniqueImageToken = () => "Unique Image Token"
+        fileStorage.getUploadUrls = (folderName, quantity) => Array(quantity).fill("URL")
+        rewiremock("../../src/core/file-storage.js").with(fileStorage)
         rewiremock.enable()
         app = express()
         app.use(require("../../src/index").api)
     })
 
     afterEach(() => {
+        fileStorage = {}
         rewiremock.disable()
     })
 })

@@ -1,13 +1,10 @@
 const express = require("express")
 const createUser = require("./controllers/user-creation")
 const deleteUser = require("./controllers/user-deletion")
-const getSignedStorageUrls = require("./controllers/image-upload")
-const getImageAnalysisResults = require("./controllers/get-images-analysis-result")
+const imageUpload = require("./controllers/image-upload")
+const imagesAnalysisResult = require("./controllers/get-images-analysis-result")
 const createDataAnalysis = require("./controllers/create-data-analysis")
 const createReport = require("./controllers/report-creation")
-
-const { query, param } = require("express-validator")
-const { validate } = require("./core/validate")
 
 const { Database, DatabaseConfiguration } = require("./core/database/database")
 
@@ -34,18 +31,8 @@ if (!databaseConfig) {
 router.use(express.json())
 router.use("/users/:user_id", deleteUser.validator, deleteUser.controller)
 router.use("/users", createUser.controller)
-router.get(
-  "/analyze/image/upload",
-  [query("quantity").exists().isInt({ min: 1, max: 5 })],
-  validate,
-  getSignedStorageUrls
-)
-router.get(
-  "/analyze/image/:imageToken",
-  [param("imageToken").exists().isUUID("4")],
-  validate,
-  getImageAnalysisResults
-)
+router.get("/analyze/image/upload", imageUpload.validator, imageUpload.controller)
+router.get("/analyze/image/:imageToken", imagesAnalysisResult.validator, imagesAnalysisResult.controller)
 
 router.post("/analyze/data", createDataAnalysis)
 router.post("/report", createReport.validator, createReport.controller);
@@ -55,7 +42,7 @@ router.use(function (req, res) {
 })
 
 router.use(function (err, req, res, next) {
-  console.log(err.stack);
+  console.error(err.stack);
   res.status(500).send();
 });
 
