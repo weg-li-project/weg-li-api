@@ -15,6 +15,7 @@ const FileStorage = require("../core/file-storage");
  *
  * @param request {e.Request}
  * @param response {e.Response}
+ * @param next
  */
 function validator(request, response, next) {
     let valid = true;
