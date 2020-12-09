@@ -13,9 +13,10 @@ const REQUEST_PARAM_USER_ID = "user_id";
  *
  * @param request {e.Request}
  * @param response {e.Response}
+ * @param next
  * @author Lukas Trommer
  */
-function validator(request, response) {
+function validator(request, response, next) {
     // Check if access token authorization is present
     if (!Authorization.validateAuthorizationHeader(request.headers.authorization)) {
         response.status(StatusCode.ClientErrorUnauthorized).send();
@@ -28,6 +29,8 @@ function validator(request, response) {
     if (!User.validateID(userID)) {
         response.status(StatusCode.ClientErrorBadRequest).send();
     }
+
+    next();
 }
 
 exports.validator = wrapper(validator);
