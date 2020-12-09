@@ -29,8 +29,8 @@ if (!databaseConfig) {
 }
 
 router.use(express.json())
-router.use("/users/:user_id", deleteUser.validator, deleteUser.controller)
-router.use("/users", createUser.controller)
+router.use("/user/:user_id", deleteUser.validator, deleteUser.controller)
+router.use("/user", createUser.controller)
 router.get("/analyze/image/upload", imageUpload.validator, imageUpload.controller)
 router.get("/analyze/image/:imageToken", imagesAnalysisResult.validator, imagesAnalysisResult.controller)
 
