@@ -11,15 +11,16 @@ const Recommender = require('../core/recommender');
  * @author Niclas Kühnapfel
  */
 async function createDataAnalysis(request, response) {
-    let location = new Location(request.body.location.latitude, request.body.location.longitude);
-
-    if (!location) {
-        throw new Error("Location is invalid");
+    let location;
+    try {
+        location = new Location(request.body.location.latitude, request.body.location.longitude);
+    } catch (e) {
+        response.json(e.toString());
+        return;
     }
 
-    let reports = await Recommender.queryReports(location);
-    let recommendations = await Recommender.getLocationRecommendations(reports);
-
+    let recommender = new Recommender();
+    let recommendations = await recommender.getLocationRecommendations(location);
     response.json({'violation': recommendations});
 }
 
