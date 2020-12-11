@@ -5,6 +5,7 @@ info:
   version: 0.1.0
 
 servers:
+  - url: https://europe-west3-wegli-296209.cloudfunctions.net/api
   - url: https://api.weg-li.de/v1
 
 tags:
