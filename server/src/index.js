@@ -5,12 +5,17 @@ const imageUpload = require("./controllers/image-upload")
 const imagesAnalysisResult = require("./controllers/get-images-analysis-result")
 const createDataAnalysis = require("./controllers/create-data-analysis")
 const createReport = require("./controllers/report-creation")
+const cors = require("cors");
 const swaggerUi = require('swagger-ui-express');
 const fs = require("fs");
 const yaml = require("js-yaml");
 const { Database, DatabaseConfiguration } = require("./core/database/database")
 
 const router = express.Router()
+
+// Restrict CORS to localhost and weg-li.de
+const corsOptions = {origin: ["localhost", /\.weg-li.de$/]}
+router.use(cors(corsOptions));
 
 // Only redirect to secure http route when in production environment
 if (process.env.NODE_ENV === "production") {
