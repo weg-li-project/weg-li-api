@@ -38,7 +38,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python 3.8
-      uses: actions/setup-python@2
+      uses: actions/setup-python@v2
       with:
         python-version: 3.8
     - name: Install dependencies
@@ -47,4 +47,4 @@ jobs:
         pip install pytest
         pip install -r requirements.txt
     - name: Test with pytest
-      run: pytest
+      run: pytest --disable-pytest-warnings --cov=main tests/test_main.py
