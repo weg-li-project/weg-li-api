@@ -27,5 +27,5 @@ jobs:
     - name: Upload APK
       uses: actions/upload-artifact@v1
       with:
-        name: app-${{ env.APK_VERSION }}.apk
+        name: weg-li-${{ env.APK_VERSION }}
         path: wegli-android/app/build/outputs/apk/debug/app-debug.apk
