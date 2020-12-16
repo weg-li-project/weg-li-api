@@ -1,0 +1,5 @@
+Client->API: POST /user
+API->API: Create user ID, access token
+API->Database: Insert user ID, access token
+Database-->API:
+API-->Client: User ID, access token

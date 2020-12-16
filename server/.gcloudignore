@@ -18,5 +18,7 @@
 .idea
 test
 
+src/app.js
+
 node_modules
 deploy.sh

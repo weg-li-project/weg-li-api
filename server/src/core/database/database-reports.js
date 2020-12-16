@@ -93,19 +93,36 @@ ReportDatabaseHandle.prototype.deleteUserReports = async function (user, transac
  *
  * @param location The center location of ROI.
  * @param radius Maximum distance to points that should be taken into account.
+ * @param exclude ID of record that should be excluded.
  * @param transaction The database transaction in which this request will be performed.
- * @returns {Promise<[Array]>} The array of records containing violation type and distance.
+ * @returns {Promise<Array>} The array of records containing violation type and distance.
  * @author Niclas Kühnapfel
  */
-ReportDatabaseHandle.prototype.queryNearReports = async function (location, radius, transaction = this.database.knex) {
+ReportDatabaseHandle.prototype.queryNearReports = async function (location, radius, exclude = null, transaction = this.database.knex) {
     let point = 'ST_MakePoint(' + location.longitude + ', ' + location.latitude + ')';
     let distance = this.database.knex.raw('ST_Distance(location, ' + point + ') distance');
     let coordinates = this.database.knex.raw('ST_X(location::geometry), ST_Y(location::geometry)')
 
-    let selectClause = [dbConst.DB_TABLE_REPORTS_VIOLATION_TYPE, distance, coordinates];
+    let selectClause = [dbConst.DB_TABLE_REPORTS_ID, dbConst.DB_TABLE_REPORTS_VIOLATION_TYPE, distance, coordinates];
     let whereClause = this.database.knex.raw('ST_DWithin(location, ' + point + ', ' + radius + ')');
+    let whereNotClause = {};
+    whereNotClause[dbConst.DB_TABLE_REPORTS_ID] = exclude;
 
-    return transaction(dbConst.DB_TABLE_REPORTS).select(selectClause).where(whereClause);
+    return transaction(dbConst.DB_TABLE_REPORTS).select(selectClause).where(whereClause).whereNot(whereNotClause);
+}
+
+/**
+ * Returns all reports stored in the databases.
+ *
+ * @param transaction
+ * @returns {Promise<Array>}
+ * @author Niclas Kühnapfel
+ */
+ReportDatabaseHandle.prototype.queryAllReports = async function (transaction = this.database.knex) {
+    let coordinates = this.database.knex.raw('ST_X(location::geometry), ST_Y(location::geometry)')
+    let selectClause = [dbConst.DB_TABLE_REPORTS_ID, dbConst.DB_TABLE_REPORTS_VIOLATION_TYPE, coordinates];
+
+    return transaction(dbConst.DB_TABLE_REPORTS).select(selectClause);
 }
 
 /**
@@ -121,8 +138,21 @@ ReportDatabaseHandle.prototype.getMostCommonViolations = async function (n, tran
     let groupClause = dbConst.DB_TABLE_REPORTS_VIOLATION_TYPE;
     let selectClause = dbConst.DB_TABLE_REPORTS_VIOLATION_TYPE;
 
-    return transaction(dbConst.DB_TABLE_REPORTS).select(selectClause).count('* as count')
+    let result = await transaction(dbConst.DB_TABLE_REPORTS).select(selectClause).count('* as count')
         .whereNotNull(whereNotNullClause).groupBy(groupClause).orderBy('count', 'desc').limit(n);
+
+    let mostCommon = [];
+    if (result) {
+        result.forEach(function (record) {
+            let violation = record[dbConst.DB_TABLE_REPORTS_VIOLATION_TYPE];
+
+            if (violation) {
+                mostCommon.push(violation);
+            }
+        });
+    }
+
+    return mostCommon;
 }
 
 module.exports = ReportDatabaseHandle;

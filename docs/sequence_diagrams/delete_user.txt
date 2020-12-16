@@ -1,0 +1,4 @@
+Client->API:DELETE /user/{user_id} (auth.)
+API->Database: Delete user_id in all structures
+Database-->API:
+API-->Client:
