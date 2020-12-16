@@ -5,6 +5,7 @@ const User = require("../models/user");
 const Authorization = require("../core/authorization");
 const UserDatabaseHandle = require("../core/database/database-users");
 const ReportDatabaseHandle = require("../core/database/database-reports");
+const FileStorage = require("../core/file-storage");
 
 const REQUEST_PARAM_USER_ID = "user_id";
 
@@ -77,7 +78,7 @@ async function _deleteUser(user) {
         let reportImageTokens = await dbHandleReport.queryUserReportImageTokens(user, dbTransaction);
 
         // Delete images relating to image tokens ins Google Cloud Storage
-        // TODO: Delete relating images from GCloud Storage
+        await FileStorage.deleteImagesByTokens(reportImageTokens)
 
         // Delete user's previous reports
         await dbHandleReport.deleteUserReports(user, dbTransaction);
