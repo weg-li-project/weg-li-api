@@ -16,6 +16,7 @@ const FileStorage = require("../core/file-storage");
  * @param request {e.Request}
  * @param response {e.Response}
  * @param next
+ * @author Lukas Trommer
  */
 function validator(request, response, next) {
     let valid = true;
@@ -62,6 +63,7 @@ exports.validator = wrapper(validator);
  *
  * @param {e.Request} request - An express request object.
  * @param {e.Response} response - An express response object.
+ * @author Lukas Trommer
  */
 async function controller(request, response) {
     let user = null;

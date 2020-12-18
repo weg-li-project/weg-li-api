@@ -1,7 +1,9 @@
 const assert = require("assert");
 const User = require("../../../src/models/user");
-const uuid = require("uuid");
 
+/**
+ * @author Lukas Trommer
+ */
 describe("User", function () {
     describe("#constructor", function () {
         it("should throw error when initialized with invalid ID", function () {

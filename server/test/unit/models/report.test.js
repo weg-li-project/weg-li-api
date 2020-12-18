@@ -4,6 +4,9 @@ const Report = require("../../../src/models/report");
 const User = require("../../../src/models/user");
 const Location = require("../../../src/models/location");
 
+/**
+ * @author Lukas Trommer
+ */
 describe("Report", function () {
     let validReport = new Report(uuid.v4(), User.generate(), 1, 0, new Location(0, 0),
         uuid.v4());

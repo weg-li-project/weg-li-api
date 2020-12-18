@@ -1,6 +1,9 @@
 const assert = require("assert");
 const Location = require("../../../src/models/location");
 
+/**
+ * @author Lukas Trommer
+ */
 describe("Location", function () {
     describe("#construtor", function () {
         it("should throw error when initialized with values out of range", function () {
