@@ -59,6 +59,8 @@ jobs:
         service_account_key: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
         export_default_credentials: true
     - uses: actions/checkout@v2
+    - name: Copy model data for ALPR
+      run: gsutil -m cp -r gs://${{ secrets.SERVICE_BUCKET_NAME }}/checkpoints ./alpr_yolo_cnn
     - name: Deploy to GCP
       run: gcloud functions deploy get_image_analysis_suggestions --trigger-http --runtime=python38 --region=europe-west3 --memory=1G
 
