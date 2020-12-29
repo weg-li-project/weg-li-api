@@ -9,7 +9,7 @@ const uuid = require("uuid");
  */
 function User(id) {
     if (!User.validateID(id)) {
-        throw new Error("Invalid user ID")
+        throw new Error("Invalid user ID " + id)
     }
 
     this.id = id;

@@ -29,6 +29,7 @@ function validator(request, response, next) {
     // Check for valid user data
     if (!User.validateID(userID)) {
         response.status(StatusCode.ClientErrorBadRequest).send();
+        return;
     }
 
     next();
@@ -50,7 +51,7 @@ async function controller(request, response) {
 
     // Check if request is authorized
     if (!(await Authorization.authorizeUser(user, access_token))) {
-        response.status(StatusCode.ClientErrorUnauthorized).send();
+        response.status(StatusCode.ClientErrorForbidden).send();
         return;
     }
 

@@ -29,7 +29,7 @@ describe("Authorization", function () {
             assert.strictEqual(Authorization.compareAccessToken(accessToken, accessTokenHash), true);
         });
 
-        it('should return false when comparing a hash to a not corresponding access token', function () {
+        it('should return false when comparing a hash to a non-corresponding access token', function () {
             assert.strictEqual(Authorization.compareAccessToken(accessToken,
                 Authorization.hashAccessToken(Authorization.generateAccessToken())), false);
         });
@@ -98,7 +98,7 @@ describe("Authorization", function () {
             assert.strictEqual(await _Authorization.authorizeUser(user, accessToken), true);
         });
 
-        it("should return false when called with user and not corresponding access token", async function () {
+        it("should return false when called with user and non-corresponding access token", async function () {
             UserDatabaseHandle.prototype.queryUserAccess =
                 async (user) => Authorization.hashAccessToken(Authorization.generateAccessToken());
 
