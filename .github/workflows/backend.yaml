@@ -40,7 +40,7 @@ jobs:
         pip install pytest
         pip install -r requirements.txt
     - name: Test with pytest
-      run: pytest --disable-pytest-warnings --cov=main tests/test_main.py
+      run: pytest --disable-pytest-warnings --cov=main tests/test_main.py tests/license_plate_candidate_test.py
 
   
   deploy-alpr:
