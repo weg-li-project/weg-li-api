@@ -1,4 +1,3 @@
-const assert = require("assert");
 const rewiremock = require("rewiremock/node");
 const supertest = require("supertest");
 const express = require("express");
@@ -8,7 +7,7 @@ const Authorization = require("../../src/core/authorization");
 const ENDPOINT = "/user/:user_id"
 const getEndpoint = (user) => ENDPOINT.replace(":user_id", user.id)
 
-describe("User Deletion", function () {
+describe(`DELETE ${ENDPOINT} (User Deletion)`, function () {
     let app = express()
 
     let mockUser = User.generate();
@@ -60,7 +59,7 @@ describe("User Deletion", function () {
         async function () {
             await supertest(app).delete(getEndpoint(mockUser)).set("Authorization", `Bearer ${mockAccessToken}`).send()
                 .expect(200).expect({});
-        });
+    });
 
     it("should return an HTTP status code 401 (Unauthorized) when called without Authorization header",
         async function () {
