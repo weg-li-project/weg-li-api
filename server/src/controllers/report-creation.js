@@ -51,6 +51,7 @@ function validator(request, response, next) {
 
     if (!valid) {
         response.status(StatusCode.ClientErrorBadRequest).send();
+        return;
     }
 
     next();
@@ -75,7 +76,7 @@ async function controller(request, response) {
 
         // Check if request is authorized
         if (!(await Authorization.authorizeUser(user, access_token))) {
-            response.status(StatusCode.ClientErrorUnauthorized).send();
+            response.status(StatusCode.ClientErrorForbidden).send();
             return;
         }
     }
@@ -125,7 +126,7 @@ _ReportCreationHelper.prototype = {
  */
 _ReportCreationHelper.prototype.resolveImageToken = async function () {
     if (this.imageToken) {
-        return await FileStorage.getFilesByToken(this.imageToken).length > 0;
+        return Array.from(await FileStorage.getFilesByToken(this.imageToken)).length > 0;
     } else {
         throw new Error("No image token specified");
     }
