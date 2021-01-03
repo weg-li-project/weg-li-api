@@ -27,6 +27,8 @@
     "eslint-config-prettier": "^7.1.0",
     "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-prettier": "^3.3.0",
+    "husky": "^4.3.6",
+    "lint-staged": "^10.5.3",
     "mocha": "^8.2.1",
     "nyc": "^15.1.0",
     "prettier": "^2.2.1",
@@ -37,6 +39,18 @@
   "scripts": {
     "start": "functions-framework --target=api",
     "test": "nyc mocha --recursive --timeout 5000"
+  },
+  "lint-staged": {
+    "{src,test}/**/*.{js,ts}": [
+      "prettier --write",
+      "eslint --fix",
+      "git add"
+    ]
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
   },
   "author": "Lukas Trommer, Jacob Rödel",
   "license": "ISC"
