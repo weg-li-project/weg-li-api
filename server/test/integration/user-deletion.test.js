@@ -14,17 +14,20 @@ describe(`DELETE ${ENDPOINT} (User Deletion)`, function () {
     let mockUser = User.generate();
     let mockAccessToken = Authorization.generateAccessToken();
 
-    let RewiredAuthorization = Authorization;
+    let RewiredAuthorization = function () { };
     let RewiredUserDatabaseHandle = function (database) { };
     let RewiredReportDatabaseHandle = function (database) { };
     let RewiredFileStorage = { };
 
     // Rewire authorization methods
     RewiredAuthorization.authorizeUser = async (user, accessToken) => {
+        console.log("teasdf")
         return accessToken === mockAccessToken;
     };
 
     RewiredAuthorization.deleteAuthorization = async (user) => undefined;
+    RewiredAuthorization.validateAuthorizationHeader = Authorization.validateAuthorizationHeader;
+    RewiredAuthorization.extractAccessToken = Authorization.extractAccessToken;
 
     // Rewire user database handle
     RewiredUserDatabaseHandle.prototype.deleteUser = async (user) => undefined;
@@ -43,19 +46,19 @@ describe(`DELETE ${ENDPOINT} (User Deletion)`, function () {
     // Rewire file storage
     RewiredFileStorage.deleteImagesByTokens = async (imageTokens) => undefined;
 
-    rewiremock("../../src/core/authorization.js").with(RewiredAuthorization);
-    rewiremock("../../src/core/database/database-users.js").with(RewiredUserDatabaseHandle);
-    rewiremock("../../src/core/database/database-reports.js").with(RewiredReportDatabaseHandle);
-    rewiremock("../../src/core/file-storage.js").with(RewiredFileStorage);
-
     before(function () {
+        rewiremock("../../src/core/authorization.js").with(RewiredAuthorization);
+        rewiremock("../../src/core/database/database-users.js").with(RewiredUserDatabaseHandle);
+        rewiremock("../../src/core/database/database-reports.js").with(RewiredReportDatabaseHandle);
+        rewiremock("../../src/core/file-storage.js").with(RewiredFileStorage);
         rewiremock.enable();
-        app.use(require("../../src/index").api)
+        app.use(require("../../src/index").api);
     });
 
     after(function () {
-        rewiremock.disable()
-    })
+        rewiremock.disable();
+        console.log(require("../../src/core/authorization").authorizeUser(mockUser, mockAccessToken));
+    });
 
     it("should return an HTTP status code 200 (OK) with empty response body when the deletion was successful",
         function (done) {

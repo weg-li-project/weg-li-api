@@ -17,7 +17,7 @@ describe(`POST ${ENDPOINT} (Report Creation)`, async function () {
     let mockImageToken = uuid.v4();
     let imageTokenExisting = true
 
-    let RewiredAuthorization = Authorization;
+    let RewiredAuthorization = function () { };
     let RewiredReportDatabaseHandle = function (database) { };
     let RewiredFileStorage = { };
 
@@ -26,19 +26,21 @@ describe(`POST ${ENDPOINT} (Report Creation)`, async function () {
         return accessToken === mockAccessToken;
     };
 
+    RewiredAuthorization.validateAuthorizationHeader = Authorization.validateAuthorizationHeader;
+    RewiredAuthorization.extractAccessToken = Authorization.extractAccessToken;
+
     // Rewire report database handle
     RewiredReportDatabaseHandle.prototype.insertReport = async (report) => undefined;
 
     // Rewire file storage
     RewiredFileStorage.getFilesByToken = async (imageToken) => imageTokenExisting ? ["some image url"] : [];
 
-    rewiremock("../../src/core/authorization.js").with(RewiredAuthorization);
-    rewiremock("../../src/core/database/database-reports.js").with(RewiredReportDatabaseHandle);
-    rewiremock("../../src/core/file-storage.js").with(RewiredFileStorage);
-
     before(function () {
+        rewiremock("../../src/core/authorization.js").with(RewiredAuthorization);
+        rewiremock("../../src/core/database/database-reports.js").with(RewiredReportDatabaseHandle);
+        rewiremock("../../src/core/file-storage.js").with(RewiredFileStorage);
         rewiremock.enable();
-        app.use(require("../../src/index").api)
+        app.use(require("../../src/index").api);
     });
 
     after(function () {
@@ -63,7 +65,7 @@ describe(`POST ${ENDPOINT} (Report Creation)`, async function () {
             };
 
             supertest(app).post(ENDPOINT).set("Authorization", `Bearer ${mockAccessToken}`).send(mockRequestBody)
-                .expect(200).expect({}, done);
+                .expect(StatusCode.SuccessOK).expect({}, done);
     });
 
     it("should return an HTTP status code 200 (OK) with empty response body when called without Authorization " +

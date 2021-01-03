@@ -79,9 +79,9 @@ describe("Authorization", function () {
         let user = User.generate();
 
         let UserDatabaseHandle = function (database) { };
-        rewiremock("../../../src/core/database/database-users.js").with(UserDatabaseHandle);
 
         before(function () {
+            rewiremock("../../../src/core/database/database-users.js").with(UserDatabaseHandle);
             rewiremock.enable();
         });
 

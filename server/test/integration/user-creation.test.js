@@ -27,10 +27,9 @@ describe(`POST ${ENDPOINT} (User Creation)`, function () {
     MockDatabase.prototype.newTransaction = () => new MockTransaction();
     RewiredUserDatabaseHandle.prototype.database = new MockDatabase();
 
-    rewiremock("../../src/core/authorization.js").with(RewiredAuthorization);
-    rewiremock("../../src/core/database/database-users.js").with(RewiredUserDatabaseHandle);
-
     before(function () {
+        rewiremock("../../src/core/authorization.js").with(RewiredAuthorization);
+        rewiremock("../../src/core/database/database-users.js").with(RewiredUserDatabaseHandle);
         rewiremock.enable();
         app.use(require("../../src/index").api)
     });
