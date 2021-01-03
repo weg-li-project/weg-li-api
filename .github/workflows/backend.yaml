@@ -24,6 +24,7 @@ jobs:
     defaults:
       run:
         working-directory: wegliML
+    needs: [changes]
     if:
       needs.changes.outputs.alpr == 'true'
     steps:
