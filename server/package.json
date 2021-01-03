@@ -39,7 +39,8 @@
   },
   "scripts": {
     "start": "functions-framework --target=api",
-    "test": "nyc mocha --recursive --timeout 5000"
+    "test": "nyc mocha --recursive --timeout 5000",
+    "lint": "eslint src --fix && eslint test --fix"
   },
   "lint-staged": {
     "{src,test}/**/*.{js,ts}": [
