@@ -8,8 +8,6 @@ jobs:
     outputs:
       server: ${{ steps.filter.outputs.server }}
       alpr: ${{ steps.filter.outputs.alpr }}
-    if:
-      github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     steps:
     - uses: actions/checkout@v2
     - uses: dorny/paths-filter@v2
@@ -27,7 +25,7 @@ jobs:
       run:
         working-directory: wegliML
     if:
-      github.ref == 'refs/heads/main' || github.ref == 'refs/heads/feature/alpr-gcloud-vision'
+      needs.changes.outputs.alpr == 'true'
     steps:
     - uses: actions/checkout@v2
       with:
@@ -48,7 +46,7 @@ jobs:
         pip install pytest
         pip install -r requirements.txt
     - name: Test with pytest
-      run: pytest --disable-pytest-warnings --cov=main alpr_gcloud_vision/tests/test_main.py alpr_gcloud_vision/tests/license_plate_candidate_test.py
+      run: pytest --disable-pytest-warnings --cov=. tests alpr_gcloud_vision/tests/test_main.py alpr_gcloud_vision/tests/license_plate_candidate_test.py
 
   
   deploy-alpr:
