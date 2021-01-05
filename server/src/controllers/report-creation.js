@@ -5,6 +5,7 @@ const wrapper = require("./assets/wrapper");
 const errors = require("./assets/errors")
 const Authorization = require("../core/authorization");
 const ReportDatabaseHandle = require("../core/database/database-reports");
+const { PublicOrderOffice, PublicOrderOfficeResolver } = require("../core/public-order-office");
 const User = require("../models/user");
 const Report = require("../models/report");
 const Location = require("../models/location");
@@ -49,6 +50,8 @@ function validator(request, response, next) {
         valid = false;
     }
 
+    valid &= request.body.zipcode
+
     if (!valid) {
         response.status(StatusCode.ClientErrorBadRequest).send();
         return;
@@ -88,6 +91,12 @@ async function controller(request, response) {
     helper.time = report.time;
     helper.location = new Location(report.location.latitude, report.location.longitude);
     helper.imageToken = report.image_token;
+    helper.zipcode = request.body.zipcode;
+
+    if (!(await helper.resolvePublicOrderOffice())) {
+        response.status(StatusCode.ClientErrorConflict).json(errors.UNKNOWN_PUBLIC_ORDER_OFFICE);
+        return;
+    }
 
     if (!(await helper.resolveImageToken())) {
         response.status(StatusCode.ClientErrorConflict).json(errors.UNKNOWN_IMAGE_TOKEN);
@@ -95,7 +104,12 @@ async function controller(request, response) {
     }
 
     await helper.store();
-    response.status(200).send();
+    response.status(200).json({
+        "public_order_office": {
+            "name": helper.publicOrderOffice.name,
+            "email_address": helper.publicOrderOffice.emailAddress
+        }
+    });
 }
 
 exports.controller = wrapper(controller);
@@ -106,16 +120,23 @@ exports.controller = wrapper(controller);
  * @private
  * @author Lukas Trommer
  */
-function _ReportCreationHelper() {
-    this.report = null;
+function _ReportCreationHelper(user) {
+    this.user = user;
 }
 
+/**
+ *
+ * @type {{zipcode: string, violationType: number, publicOrderOffice: PublicOrderOffice, location: Location,
+ * time: number, user: User, imageToken: string}}
+ */
 _ReportCreationHelper.prototype = {
     user: null,
     violationType: null,
     time: null,
     location: null,
-    imageToken: null
+    imageToken: null,
+    zipcode: null,
+    publicOrderOffice: null
 }
 
 /**
@@ -133,6 +154,18 @@ _ReportCreationHelper.prototype.resolveImageToken = async function () {
 }
 
 /**
+ * Resolve the provided zipcode to the responsible public order office and its email address.
+ *
+ * @returns {Promise<boolean>} <code>true</code> if the zipcode could be resolved, <code>false</code> otherwise.
+ * @author Lukas Trommer
+ */
+_ReportCreationHelper.prototype.resolvePublicOrderOffice = async function () {
+    const resolver = new PublicOrderOfficeResolver(this.zipcode);
+    this.publicOrderOffice = await resolver.resolve();
+    return !!this.publicOrderOffice;
+}
+
+/**
  * Create and store a new report from the provided data.
  *
  * @returns {Promise<void>}
@@ -143,3 +176,4 @@ _ReportCreationHelper.prototype.store = async function () {
     let dbHandle = new ReportDatabaseHandle();
     await dbHandle.insertReport(report);
 }
+
