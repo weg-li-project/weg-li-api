@@ -73,7 +73,7 @@ function printResults(counter, matches) {
   console.log(`10 recommendations accuracy: ${sumTen.toFixed(2)} %`);
 }
 
-describe('Recommender', () => {
+describe.skip('Recommender', () => {
   describe('#getLocationRecommendations', () => {
     it('shows overall accuracy', async () => {
       initDatabase();
