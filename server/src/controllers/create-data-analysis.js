@@ -21,9 +21,7 @@ async function createDataAnalysis(request, response) {
   }
 
   const recommender = new Recommender();
-  const recommendations = await recommender.getLocationRecommendations(
-    location
-  );
+  const recommendations = await recommender.getRecommendations(location);
   response.json({ violation: recommendations });
 }
 
