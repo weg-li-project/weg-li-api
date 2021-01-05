@@ -4,7 +4,6 @@ const express = require("express");
 const uuid = require("uuid");
 const { StatusCode } = require("status-code-enum")
 const Authorization = require("../../src/core/authorization");
-const { PublicOrderOffice } = require("../../src/core/public-order-office");
 const User = require("../../src/models/user");
 const errors = require("../../src/controllers/assets/errors");
 
@@ -17,12 +16,10 @@ describe(`POST ${ENDPOINT} (Report Creation)`, async function () {
     let mockAccessToken = Authorization.generateAccessToken();
     let mockImageToken = uuid.v4();
     let imageTokenExisting = true;
-    let publicOrderOfficeExisting = true;
 
     let RewiredAuthorization = function () { };
     let RewiredReportDatabaseHandle = function (database) { };
     let RewiredFileStorage = { };
-    let RewiredPublicOrderOfficeResolver = function (zipcode) { }
 
     // Rewire authorization methods
     RewiredAuthorization.authorizeUser = async (user, accessToken) => {
@@ -38,20 +35,10 @@ describe(`POST ${ENDPOINT} (Report Creation)`, async function () {
     // Rewire file storage
     RewiredFileStorage.getFilesByToken = async (imageToken) => imageTokenExisting ? ["some image url"] : [];
 
-    // Rewire public order office resolver
-    RewiredPublicOrderOfficeResolver.prototype.resolve = async () =>
-        publicOrderOfficeExisting ? new PublicOrderOffice("Musterstadt", "ordnungsamt@musterstadt.de") : null;
-
     before(function () {
         rewiremock("../../src/core/authorization.js").with(RewiredAuthorization);
         rewiremock("../../src/core/database/database-reports.js").with(RewiredReportDatabaseHandle);
         rewiremock("../../src/core/file-storage.js").with(RewiredFileStorage);
-
-        rewiremock("../../src/core/public-order-office.js").with({
-            PublicOrderOffice,
-            PublicOrderOfficeResolver: RewiredPublicOrderOfficeResolver
-        });
-
         rewiremock.enable();
         app.use(require("../../src/index").api);
     });
@@ -63,7 +50,6 @@ describe(`POST ${ENDPOINT} (Report Creation)`, async function () {
     it("should return an HTTP status code 200 (OK) with empty response body when the creation was successful",
         function (done) {
             imageTokenExisting = true
-            publicOrderOfficeExisting = true
 
             let mockRequestBody = {
                 user_id: mockUser.id,
@@ -75,25 +61,17 @@ describe(`POST ${ENDPOINT} (Report Creation)`, async function () {
                         longitude: 13.37069649848694
                     },
                     image_token: mockImageToken
-                },
-                zipcode: "13357"
+                }
             };
 
             supertest(app).post(ENDPOINT).set("Authorization", `Bearer ${mockAccessToken}`).send(mockRequestBody)
-                .expect(StatusCode.SuccessOK)
-                .expect({
-                    public_order_office: {
-                        name: "Musterstadt",
-                        email_address: "ordnungsamt@musterstadt.de"
-                    }
-                }, done);
+                .expect(StatusCode.SuccessOK).expect({}, done);
     });
 
     it("should return an HTTP status code 200 (OK) with empty response body when called without Authorization " +
         "header, without user ID and when the creation was successful",
         function (done) {
             imageTokenExisting = true
-            publicOrderOfficeExisting = true
 
             let mockRequestBody = {
                 report: {
@@ -104,23 +82,16 @@ describe(`POST ${ENDPOINT} (Report Creation)`, async function () {
                         longitude: 13.37069649848694
                     },
                     image_token: mockImageToken
-                },
-                zipcode: "13357"
+                }
             };
 
-            supertest(app).post(ENDPOINT).send(mockRequestBody).expect(StatusCode.SuccessOK).expect({
-                public_order_office: {
-                    name: "Musterstadt",
-                    email_address: "ordnungsamt@musterstadt.de"
-                }
-            }, done);
+            supertest(app).post(ENDPOINT).send(mockRequestBody).expect(StatusCode.SuccessOK).expect({}, done);
     });
 
     it("should return an HTTP status code 403 (Forbidden) when called with valid Authorization header not " +
         "related to the provided user ID",
         function (done) {
             imageTokenExisting = true
-            publicOrderOfficeExisting = true
 
             let mockRequestBody = {
                 user_id: mockUser.id,
@@ -132,8 +103,7 @@ describe(`POST ${ENDPOINT} (Report Creation)`, async function () {
                         longitude: 13.37069649848694
                     },
                     image_token: mockImageToken
-                },
-                zipcode: "13357"
+                }
             };
 
             supertest(app).post(ENDPOINT).set("Authorization", `Bearer ${Authorization.generateAccessToken()}`)
@@ -143,7 +113,6 @@ describe(`POST ${ENDPOINT} (Report Creation)`, async function () {
     it("should return an HTTP status code 400 (Bad Request) when called without request body",
         function (done) {
             imageTokenExisting = true
-            publicOrderOfficeExisting = true
 
             supertest(app).post(ENDPOINT).set("Authorization", `Bearer ${mockAccessToken}`).send()
                 .expect(StatusCode.ClientErrorBadRequest).expect({}, done);
@@ -152,7 +121,6 @@ describe(`POST ${ENDPOINT} (Report Creation)`, async function () {
     it("should return an HTTP status code 400 (Bad Request) when called without violation type",
         function (done) {
             imageTokenExisting = true
-            publicOrderOfficeExisting = true
 
             let mockRequestBody = {
                 user_id: mockUser.id,
@@ -163,8 +131,7 @@ describe(`POST ${ENDPOINT} (Report Creation)`, async function () {
                         longitude: 13.37069649848694
                     },
                     image_token: mockImageToken
-                },
-                zipcode: "13357"
+                }
             };
 
             supertest(app).post(ENDPOINT).set("Authorization", `Bearer ${mockAccessToken}`).send(mockRequestBody)
@@ -174,7 +141,6 @@ describe(`POST ${ENDPOINT} (Report Creation)`, async function () {
     it("should return an HTTP status code 400 (Bad Request) when called without violation type",
         function (done) {
             imageTokenExisting = true
-            publicOrderOfficeExisting = true
 
             let mockRequestBody = {
                 user_id: mockUser.id,
@@ -185,8 +151,7 @@ describe(`POST ${ENDPOINT} (Report Creation)`, async function () {
                         longitude: 13.37069649848694
                     },
                     image_token: mockImageToken
-                },
-                zipcode: "13357"
+                }
             };
 
             supertest(app).post(ENDPOINT).set("Authorization", `Bearer ${mockAccessToken}`).send(mockRequestBody)
@@ -196,7 +161,6 @@ describe(`POST ${ENDPOINT} (Report Creation)`, async function () {
     it("should return an HTTP status code 400 (Bad Request) when called without violation time",
         function (done) {
             imageTokenExisting = true
-            publicOrderOfficeExisting = true
 
             let mockRequestBody = {
                 user_id: mockUser.id,
@@ -207,8 +171,7 @@ describe(`POST ${ENDPOINT} (Report Creation)`, async function () {
                         longitude: 13.37069649848694
                     },
                     image_token: mockImageToken
-                },
-                zipcode: "13357"
+                }
             };
 
             supertest(app).post(ENDPOINT).set("Authorization", `Bearer ${mockAccessToken}`).send(mockRequestBody)
@@ -218,7 +181,6 @@ describe(`POST ${ENDPOINT} (Report Creation)`, async function () {
     it("should return an HTTP status code 400 (Bad Request) when called without location",
         function (done) {
             imageTokenExisting = true
-            publicOrderOfficeExisting = true
 
             let mockRequestBody = {
                 user_id: mockUser.id,
@@ -226,8 +188,7 @@ describe(`POST ${ENDPOINT} (Report Creation)`, async function () {
                     violation_type: 1,
                     time: Math.floor(Date.now() / 1000),
                     image_token: mockImageToken
-                },
-                zipcode: "13357"
+                }
             };
 
             supertest(app).post(ENDPOINT).set("Authorization", `Bearer ${mockAccessToken}`).send(mockRequestBody)
@@ -237,7 +198,6 @@ describe(`POST ${ENDPOINT} (Report Creation)`, async function () {
     it("should return an HTTP status code 400 (Bad Request) when called without image token",
         function (done) {
             imageTokenExisting = true
-            publicOrderOfficeExisting = true
 
             let mockRequestBody = {
                 user_id: mockUser.id,
@@ -248,8 +208,7 @@ describe(`POST ${ENDPOINT} (Report Creation)`, async function () {
                         latitude: 52.550127300460765,
                         longitude: 13.37069649848694
                     }
-                },
-                zipcode: "13357"
+                }
             };
 
             supertest(app).post(ENDPOINT).set("Authorization", `Bearer ${mockAccessToken}`).send(mockRequestBody)
@@ -259,7 +218,6 @@ describe(`POST ${ENDPOINT} (Report Creation)`, async function () {
     it("should return an HTTP status code 400 (Bad Request) when called with invalid image token",
         function (done) {
             imageTokenExisting = true
-            publicOrderOfficeExisting = true
 
             let mockRequestBody = {
                 user_id: mockUser.id,
@@ -271,8 +229,7 @@ describe(`POST ${ENDPOINT} (Report Creation)`, async function () {
                         longitude: 13.37069649848694
                     },
                     image_token: "invalid token"
-                },
-                zipcode: "13357"
+                }
             };
 
             supertest(app).post(ENDPOINT).set("Authorization", `Bearer ${mockAccessToken}`).send(mockRequestBody)
@@ -282,30 +239,6 @@ describe(`POST ${ENDPOINT} (Report Creation)`, async function () {
     it("should return an HTTP status code 409 (Conflict) when called with non-existent image token",
         function (done) {
             imageTokenExisting = false
-            publicOrderOfficeExisting = true
-
-            let mockRequestBody = {
-                user_id: mockUser.id,
-                report: {
-                    violation_type: 1,
-                    time: Math.floor(Date.now() / 1000),
-                    location: {
-                        latitude: 52.550127300460765,
-                        longitude: 13.37069649848694
-                    },
-                    image_token: mockImageToken
-                },
-                zipcode: "13357"
-            };
-
-            supertest(app).post(ENDPOINT).set("Authorization", `Bearer ${mockAccessToken}`).send(mockRequestBody)
-                .expect(StatusCode.ClientErrorConflict).expect(errors.UNKNOWN_IMAGE_TOKEN, done);
-    });
-
-    it("should return an HTTP status code 400 (Bad Request) when called without zipcode",
-        function (done) {
-            imageTokenExisting = true
-            publicOrderOfficeExisting = true
 
             let mockRequestBody = {
                 user_id: mockUser.id,
@@ -321,29 +254,6 @@ describe(`POST ${ENDPOINT} (Report Creation)`, async function () {
             };
 
             supertest(app).post(ENDPOINT).set("Authorization", `Bearer ${mockAccessToken}`).send(mockRequestBody)
-                .expect(StatusCode.ClientErrorBadRequest).expect({}, done);
-        });
-
-    it("should return an HTTP status code 409 (Conflict) when called with unresolvable zipcode",
-        function (done) {
-            imageTokenExisting = true
-            publicOrderOfficeExisting = false
-
-            let mockRequestBody = {
-                user_id: mockUser.id,
-                report: {
-                    violation_type: 1,
-                    time: Math.floor(Date.now() / 1000),
-                    location: {
-                        latitude: 52.550127300460765,
-                        longitude: 13.37069649848694
-                    },
-                    image_token: mockImageToken
-                },
-                zipcode: "07343"
-            };
-
-            supertest(app).post(ENDPOINT).set("Authorization", `Bearer ${mockAccessToken}`).send(mockRequestBody)
-                .expect(StatusCode.ClientErrorConflict).expect(errors.UNKNOWN_PUBLIC_ORDER_OFFICE, done);
-        });
+                .expect(StatusCode.ClientErrorConflict).expect(errors.UNKNOWN_IMAGE_TOKEN, done);
+    });
 });

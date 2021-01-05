@@ -52,7 +52,7 @@ paths:
             $ref: "#/components/schemas/UserID"
       responses:
         "200":
-          description: "The operation was successful."
+          description: The operation was successful.
         "400":
           $ref: "#/components/responses/BadRequestError"
         "401":
@@ -60,7 +60,7 @@ paths:
         "403":
           $ref: "#/components/responses/ForbiddenError"
         "404":
-          description: "The requested user could not be found."
+          description: The requested user could not be found.
         "500":
           $ref: "#/components/responses/InternalServerError"
   /analyze/data:
@@ -91,7 +91,7 @@ paths:
                   allOf:
                     - $ref: "#/components/schemas/Location"
       responses:
-        200:
+        "200":
           description: ""
           content:
             application/json:
@@ -131,7 +131,7 @@ paths:
             maximum: 5
       responses:
         "200":
-          description: "The operation was successful."
+          description: The operation was successful.
           content:
             application/json:
               schema:
@@ -142,13 +142,13 @@ paths:
                 properties:
                   token:
                     type: string
-                    description: "A unique image token"
+                    description: A unique image token
                     example: 82571c4a-7f07-4bdc-acdc-5b2745a00de3
                   google_cloud_urls:
                     type: array
                     items:
                       type: string
-                    description: "The Google Cloud Storage urls to which the image(s) should be uploaded."
+                    description: The Google Cloud Storage urls to which the image(s) should be uploaded.
                     example:
                       - https://api.google.com/...
         "400":
@@ -168,15 +168,15 @@ paths:
             type: string
       responses:
         "200":
-          description: "The operation was successful."
+          description: The operation was successful.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Suggestions'
+                $ref: "#/components/schemas/Suggestions"
         "400":
           $ref: "#/components/responses/BadRequestError"
         "404":
-          description: "No image(s) could be found for the provided token."
+          description: No image(s) could be found for the provided token.
         "409":
           $ref: "#/components/responses/ConflictError"
         "500":
@@ -204,22 +204,7 @@ paths:
                   type: string
       responses:
         "200":
-          description: "The operation was successful."
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  public_order_office:
-                    description: The public order office which is responsible for handling the issued violation report.
-                    type: object
-                    properties:
-                      name:
-                        description: The name of the public order office (usually the corresponding city name).
-                        type: string
-                      email_address:
-                        description: The email address to which the violation report must be sent.
-                        type: string
+          description: The operation was successful.
         "400":
           $ref: "#/components/responses/BadRequestError"
         "401":
@@ -228,6 +213,38 @@ paths:
           $ref: "#/components/responses/ForbiddenError"
         "409":
           $ref: "#/components/responses/ConflictError"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /report/district/{zipcode}:
+    get:
+      tags:
+        - report
+      parameters:
+        - name: zipcode
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: The operation was successful.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  public_order_office:
+                    description: The public order office which is responsible for handling the violation reports.
+                    type: object
+                    properties:
+                      name:
+                        description: The name of the public order office (usually the corresponding city name).
+                        type: string
+                      email_address:
+                        description: The email address to which a violation report must be sent.
+                        type: string
+        "404":
+          description: No district was found for the provided zipcode. This might either be due to a non-existing zipcode or due to the district not being registered yet.
         "500":
           $ref: "#/components/responses/InternalServerError"
 components:

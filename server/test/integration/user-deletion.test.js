@@ -56,7 +56,6 @@ describe(`DELETE ${ENDPOINT} (User Deletion)`, function () {
 
     after(function () {
         rewiremock.disable();
-        console.log(require("../../src/core/authorization").authorizeUser(mockUser, mockAccessToken));
     });
 
     it("should return an HTTP status code 200 (OK) with empty response body when the deletion was successful",

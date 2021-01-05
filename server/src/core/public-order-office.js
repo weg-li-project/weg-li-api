@@ -21,31 +21,28 @@ function PublicOrderOffice(name, emailAddress) {
 /**
  * This class resolves a provided zipcode to the responsible public order office.
  *
- * @param zipcode The zipcode that should be resolved.
  * @constructor
  * @author Lukas Trommer
  */
-function PublicOrderOfficeResolver(zipcode) {
-    if (!zipcode) {
-        throw new Error("No zipcode specified");
-    }
-
-    this.zipcode = zipcode;
-}
+function PublicOrderOfficeResolver() { }
 
 /**
  * Resolve the provided zipcode to the public order office information by fetching the required information from the
  * corresponding weg-li endpoint.
  *
+ * @param zipcode The zipcode that should be resolved.
  * @returns {Promise<null|PublicOrderOffice>} The resolved public order office or null if the zipcode could not be
  * resolved.
  * @author Lukas Trommer
  */
-PublicOrderOfficeResolver.prototype.resolve = async function () {
+PublicOrderOfficeResolver.prototype.resolve = async function (zipcode) {
+    if (!zipcode) {
+        throw new Error("No zipcode specified");
+    }
     let response;
 
     try {
-        response = await axios.get(`https://www.weg-li.de/districts/${this.zipcode}.json`);
+        response = await axios.get(`https://www.weg-li.de/districts/${zipcode}.json`);
     } catch (e) {
         if (e.response && e.response.status === StatusCode.ClientErrorNotFound) {
             return null;

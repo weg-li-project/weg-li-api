@@ -5,7 +5,6 @@ const wrapper = require("./assets/wrapper");
 const errors = require("./assets/errors")
 const Authorization = require("../core/authorization");
 const ReportDatabaseHandle = require("../core/database/database-reports");
-const { PublicOrderOffice, PublicOrderOfficeResolver } = require("../core/public-order-office");
 const User = require("../models/user");
 const Report = require("../models/report");
 const Location = require("../models/location");
@@ -50,8 +49,6 @@ function validator(request, response, next) {
         valid = false;
     }
 
-    valid &= request.body.zipcode
-
     if (!valid) {
         response.status(StatusCode.ClientErrorBadRequest).send();
         return;
@@ -93,23 +90,13 @@ async function controller(request, response) {
     helper.imageToken = report.image_token;
     helper.zipcode = request.body.zipcode;
 
-    if (!(await helper.resolvePublicOrderOffice())) {
-        response.status(StatusCode.ClientErrorConflict).json(errors.UNKNOWN_PUBLIC_ORDER_OFFICE);
-        return;
-    }
-
     if (!(await helper.resolveImageToken())) {
         response.status(StatusCode.ClientErrorConflict).json(errors.UNKNOWN_IMAGE_TOKEN);
         return;
     }
 
     await helper.store();
-    response.status(200).json({
-        "public_order_office": {
-            "name": helper.publicOrderOffice.name,
-            "email_address": helper.publicOrderOffice.emailAddress
-        }
-    });
+    response.status(200).end();
 }
 
 exports.controller = wrapper(controller);
@@ -126,8 +113,7 @@ function _ReportCreationHelper(user) {
 
 /**
  *
- * @type {{zipcode: string, violationType: number, publicOrderOffice: PublicOrderOffice, location: Location,
- * time: number, user: User, imageToken: string}}
+ * @type {{zipcode: string, violationType: number, location: Location, time: number, user: User, imageToken: string}}
  */
 _ReportCreationHelper.prototype = {
     user: null,
@@ -135,8 +121,6 @@ _ReportCreationHelper.prototype = {
     time: null,
     location: null,
     imageToken: null,
-    zipcode: null,
-    publicOrderOffice: null
 }
 
 /**
@@ -151,18 +135,6 @@ _ReportCreationHelper.prototype.resolveImageToken = async function () {
     } else {
         throw new Error("No image token specified");
     }
-}
-
-/**
- * Resolve the provided zipcode to the responsible public order office and its email address.
- *
- * @returns {Promise<boolean>} <code>true</code> if the zipcode could be resolved, <code>false</code> otherwise.
- * @author Lukas Trommer
- */
-_ReportCreationHelper.prototype.resolvePublicOrderOffice = async function () {
-    const resolver = new PublicOrderOfficeResolver(this.zipcode);
-    this.publicOrderOffice = await resolver.resolve();
-    return !!this.publicOrderOffice;
 }
 
 /**
