@@ -23,7 +23,7 @@ paths:
         - user
       description: Create a new user for the analysis platform.
       responses:
-        200:
+        "200":
           description: "The operation was successful."
           content:
             application/json:
@@ -35,13 +35,15 @@ paths:
                   access_token:
                     type: string
                     description: The corresponding access token for the newly created user account.
+        "500":
+          $ref: "#/components/responses/InternalServerError"
   /user/{user_id}:
     delete:
       tags:
         - user
       description: Deletes the information that is associated to the provided anonymous user id on the analysis platform.
       security:
-        - accessTokenAuth: []
+        - AccessTokenAuth: []
       parameters:
         - name: user_id
           in: path
@@ -49,22 +51,24 @@ paths:
           schema:
             $ref: "#/components/schemas/UserID"
       responses:
-        200:
+        "200":
           description: "The operation was successful."
-        401:
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "401":
           $ref: "#/components/responses/UnauthorizedError"
-        409:
-          description: "An endpoint error occurred."
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "404":
+          description: "The requested user could not be found."
+        "500":
+          $ref: "#/components/responses/InternalServerError"
   /analyze/data:
     post:
       tags:
         - analyze
       security:
-        - accessTokenAuth: []
+        - AccessTokenAuth: []
       requestBody:
         required: true
         content:
@@ -103,8 +107,14 @@ paths:
                     example:
                       - no_stopping
                       - no_parking
-        401:
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "401":
           $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
   /analyze/image/upload:
     get:
       description: Returns expiring cloud storage urls. Upload urls only accept PUT requests and expect files in jpeg format.
@@ -120,7 +130,7 @@ paths:
             minimum: 1
             maximum: 5
       responses:
-        200:
+        "200":
           description: "The operation was successful."
           content:
             application/json:
@@ -141,6 +151,10 @@ paths:
                     description: "The Google Cloud Storage urls to which the image(s) should be uploaded."
                     example:
                       - https://api.google.com/...
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
   /analyze/image/{image_token}:
     get:
       description: Returns suggestions of the violating vehicle regarding license plate number, make, model and color based on the provided images ordered by descending confidence.
@@ -153,26 +167,26 @@ paths:
           schema:
             type: string
       responses:
-        200:
+        "200":
           description: "The operation was successful."
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Suggestions'
-        404:
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "404":
           description: "No image(s) could be found for the provided token."
-        409:
-          description: "An endpoint error occurred."
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
+        "409":
+          $ref: "#/components/responses/ConflictError"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
   /report:
     post:
       tags:
         - report
       security:
-        - accessTokenAuth: []
+        - AccessTokenAuth: []
       requestBody:
         required: true
         content:
@@ -186,16 +200,54 @@ paths:
                   $ref: "#/components/schemas/UserID"
                 report:
                   $ref: "#/components/schemas/Report"
+                zipcode:
+                  type: string
       responses:
-        200:
+        "200":
           description: "The operation was successful."
-
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  public_order_office:
+                    description: The public order office which is responsible for handling the issued violation report.
+                    type: object
+                    properties:
+                      name:
+                        description: The name of the public order office (usually the corresponding city name).
+                        type: string
+                      email_address:
+                        description: The email address to which the violation report must be sent.
+                        type: string
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "409":
+          $ref: "#/components/responses/ConflictError"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 components:
   responses:
+    BadRequestError:
+      description: Bad Request. The request format did not conform to the specification and contains invalid structures or values.
     UnauthorizedError:
-      description: The access token is missing or invalid.
+      description: Unauthorized. The request needs to be authorized and the access token is missing or invalid.
+    ForbiddenError:
+      description: Forbidden. The request needs to be authorized and the provided authorization scope does not match the required one.
+    ConflictError:
+      description: Conflict. An endpoint specific error occurred.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    InternalServerError:
+      description: Internal Server Error. An unspecified internal server error occurred.
   securitySchemes:
-    accessTokenAuth:
+    AccessTokenAuth:
       type: http
       scheme: bearer
   schemas:

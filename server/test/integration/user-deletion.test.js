@@ -21,7 +21,6 @@ describe(`DELETE ${ENDPOINT} (User Deletion)`, function () {
 
     // Rewire authorization methods
     RewiredAuthorization.authorizeUser = async (user, accessToken) => {
-        console.log("teasdf")
         return accessToken === mockAccessToken;
     };
 
