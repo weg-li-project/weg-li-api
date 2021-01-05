@@ -26,6 +26,7 @@
       }
     ],
     "radix": "warn",
-    "no-plusplus": "warn"
+    "no-plusplus": "warn",
+    "max-len": ["error", { "code": 120 }]
   }
 }
