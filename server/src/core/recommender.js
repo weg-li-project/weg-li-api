@@ -1,178 +1,168 @@
-'use strict'
+const ReportDatabaseHandle = require('./database/database-reports');
 
-const ReportDatabaseHandle = require("./database/database-reports");
+const NEAR_RADIUS = 50;
+const WIDE_RADIUS = 2000;
+const REPORTS_AROUND = 200;
 
-const FIRST_STAGE_RADIUS = 50;
-const SECOND_STAGE_RADIUS = 55;
-const FILL_SECOND_STAGE_RADIUS = 75;
-const OUTLIER_THRESHOLD = 2;
-const RECOMMENDATION_NUMBER = 3;
+const USER_MULTIPLIER = 0.36;
+const LOCATION_MULTIPLIER = 1.64;
+const COMMON_MULTIPLIER = 0.01;
+
+/** TODO - faster sum - faster getMostCommon() */
 
 /**
- * Responsible for creating location based and user
- * data based recommendations.
+ * Responsible for creating recommendations based on user history and location.
  *
  * @author Niclas Kühnapfel
  */
 class Recommender {
-    dbHandle = new ReportDatabaseHandle();
-    mostCommon;
+  constructor() {
+    this.dbHandle = new ReportDatabaseHandle();
+  }
 
-    /**
-     * Returns recommendations based on the location of given reports.
-     * This is the first stage which uses a smaller radius and complements
-     * recommendations with items from the second stage.
-     *
-     * @param location The location of a report in creation.
-     * @param exclude The ID of point to be excluded from further analysis.
-     * @returns {string[]} Most probable violation types.
-     * @author Niclas Kühnapfel
-     */
-    async getLocationRecommendations(location, exclude = null) {
-        let reports = await this.queryReports(location, FIRST_STAGE_RADIUS, exclude);
-        if (this.constructor.isOutlier(reports)) {
-            return await this.secondStage(location, FILL_SECOND_STAGE_RADIUS, exclude);
-        } else {
-            let keys = this.constructor.analyzeArea(reports);
-            return await this.fillSecondStage(keys, location);
-        }
+  /**
+   * Returns ordered list of violation types. Most probable type on top.
+   *
+   * @param location The location of the new report.
+   * @param userId The user identifier for the new report.
+   * @returns {Promise<number[]>} Ordered list array of violation types.
+   */
+  async getRecommendations(location, userId = null) {
+    let allScores = {};
+
+    const commonScores = await this.computeMostCommonScores();
+    allScores = this.constructor.addScores(
+      allScores,
+      commonScores,
+      COMMON_MULTIPLIER
+    );
+
+    const locationScores = await this.computeLocationScores(location);
+    allScores = this.constructor.addScores(
+      allScores,
+      locationScores,
+      LOCATION_MULTIPLIER
+    );
+
+    if (userId !== null) {
+      const userScores = await this.computeUserHistoryScores(userId);
+      allScores = this.constructor.addScores(
+        allScores,
+        userScores,
+        USER_MULTIPLIER
+      );
     }
 
-    /**
-     * Returns recommendations. The second stage is similar to to the first stage
-     * but uses a greater radius and complements recommendations with the overall
-     * most common ones.
-     *
-     * @param location The location of a report in creation.
-     * @param radius The radius of the area to consider.
-     * @param exclude The ID of point to be excluded from further analysis.
-     * @returns {Promise<*>}
-     * @author Niclas Kühnapfel
-     */
-    async secondStage(location, radius, exclude) {
-        let reports = await this.dbHandle.queryNearReports(location, radius, exclude);
-        let keys = this.constructor.analyzeArea(reports);
-        return await this.fillMostCommon(keys);
-    }
+    return this.constructor.getSortedKeys(allScores);
+  }
 
-    /**
-     * Returns recommendations based on number and distance of reports
-     * that lay in an area around the point of interest.
-     *
-     * @param reports The reports around POI.
-     * @returns {number[]} The recommendations.
-     *          Length can be less than RECOMMENDATION_NUMBER.
-     * @author Niclas Kühnapfel
-     */
-    static analyzeArea(reports) {
-        // assign distance based weights to each report
-        reports.forEach(function(report, index) {
-            if (report.distance === 0) {
-                this[index].weight = Number.MAX_VALUE;
-            } else {
-                this[index].weight = (1 / report.distance);
-            }
-        }, reports);
+  /**
+   * Computes scores based on most common violation types.
+   *
+   * @returns {Promise<{}>} List of violation types and their score
+   */
+  async computeMostCommonScores() {
+    const mostCommon = await this.dbHandle.getMostCommonViolations();
+    const len = Object.keys(mostCommon).length;
 
-        // sum up weights to determine most probable violation type
-        let violations = {};
-        reports.forEach(function(report) {
-            if (report.violation_type in violations) {
-                violations[report.violation_type] += report.weight;
-            } else {
-                violations[report.violation_type] = report.weight;
-            }
-        });
+    const scores = {};
+    mostCommon.forEach((type) => {
+      scores[type] = (len - mostCommon.indexOf(type)) / ((len * (len + 1)) / 2);
+    });
 
-        // consider violations with highest weights
-        return this.getKeysWithHighestValue(violations, RECOMMENDATION_NUMBER);
-    }
+    return scores;
+  }
 
-    /**
-     * Complements array with values from another array.
-     *
-     * @param recommendations The array to complement.
-     * @param filling The array that provides additional entries.
-     * @returns {Promise<Number[]>}
-     * @author Niclas Kühnapfel
-     */
-    fillRecommendations(recommendations, filling) {
-        let n = RECOMMENDATION_NUMBER - recommendations.length;
-        let diff = filling.filter(e => !recommendations.includes(e));
-        for (let i = 0; i < n; i++) {
-            recommendations.push(diff[i]);
-        }
-        return recommendations;
-    }
+  /**
+   * Computes scores based on most common violation types in user's report history.
+   *
+   * @param userId The user's identifier.
+   * @returns {Promise<{}>} List of violation types and their score.
+   */
+  async computeUserHistoryScores(userId) {
+    const userHistory = await this.dbHandle.getUserReports(userId);
 
-    /**
-     * Complements recommendations with items from the second stage.
-     *
-     * @param recommendations The array to complement.
-     * @param location The location of a report in creation.
-     * @returns {Promise<Number[]>}
-     * @author Niclas Kühnapfel
-     */
-    async fillSecondStage(recommendations, location) {
-        let secondStage = await this.secondStage(location, SECOND_STAGE_RADIUS);
-        return this.fillRecommendations(recommendations, secondStage);
-    }
+    let count = 0;
+    userHistory.forEach((report) => {
+      count += parseInt(report.count, 10);
+    });
 
-    /**
-     * Complements recommendations with most common ones.
-     *
-     * @param recommendations The array to complement.
-     * @returns {Promise<Number[]>}
-     * @author Niclas Kühnapfel
-     */
-    async fillMostCommon(recommendations) {
-        if (!this.mostCommon) {
-            this.mostCommon = await this.dbHandle.getMostCommonViolations(RECOMMENDATION_NUMBER);
-        }
-        return this.fillRecommendations(recommendations, this.mostCommon);
-    }
+    const scores = {};
+    userHistory.forEach((report) => {
+      scores[report.violation_type] = report.count / count;
+    });
 
-    /**
-     * Tries to determine if a point is a outlier or not.
-     *
-     * @param reports All reports around the point of interest.
-     * @returns {boolean} True if outlier detected.
-     * @author Niclas Kühnapfel
-     */
-    static isOutlier(reports) {
-        return Object.keys(reports).length < OUTLIER_THRESHOLD;
-    }
+    return scores;
+  }
 
-    /**
-     * Retrieves reports for analysis.
-     *
-     * @param location The location of interest.
-     * @param radius The radius of the area to consider.
-     * @param exclude ID of report that should be excluded from query.
-     * @returns {Promise<Object[]>} Reports in the range of given location.
-     * @author Niclas Kühnapfel
-     */
-    async queryReports(location, radius, exclude = null) {
-        return await this.dbHandle.queryNearReports(location, radius, exclude);
-    }
+  /**
+   * Computes scores based on location of the new report.
+   *
+   * @param location The location of the new report.
+   * @returns {Promise<{}>} List of violation types and their score.
+   */
+  async computeLocationScores(location) {
+    const count = await this.dbHandle.countNearReports(location, NEAR_RADIUS);
+    const reports = await this.dbHandle.getKNN(
+      location,
+      count + REPORTS_AROUND,
+      WIDE_RADIUS
+    );
 
-    /**
-     * Returns array keys with highest associated values.
-     *
-     * @param arr The array.
-     * @param n Number of keys to return.
-     * @returns {number[]} The keys.
-     * @author Niclas Kühnapfel
-     */
-    static getKeysWithHighestValue(arr, n) {
-        let keys = Object.keys(arr);
-        keys.sort(function(a, b){
-            return arr[b] - arr[a];
-        })
-        return keys.slice(0, n).map(function (x) {
-            return parseFloat(x);
-        });
-    }
+    // compute weights
+    let sum = 0;
+    reports.forEach(function (report, index) {
+      const e = 0.1;
+      const weight = 1 / (1 + e * e * report.distance * report.distance);
+      this[index].weight = weight;
+      sum += weight;
+    }, reports);
+
+    // sum up weights to determine most probable violation type
+    const scores = {};
+    reports.forEach((report) => {
+      if (report.violation_type in scores) {
+        scores[report.violation_type] += report.weight / sum;
+      } else {
+        scores[report.violation_type] = report.weight / sum;
+      }
+    });
+
+    return scores;
+  }
+
+  /**
+   * Combines scores and multiplies each score with specified multiplier.
+   *
+   * @param allScores Previous score list.
+   * @param scores New score list.
+   * @param multiplier Multiplier for new score list.
+   * @returns {any} Combined score list.
+   */
+  static addScores(allScores, scores, multiplier) {
+    const out = allScores;
+    Object.entries(scores).forEach((entry) => {
+      const [type, score] = entry;
+      if (out[type]) {
+        out[type] += score * multiplier;
+      } else {
+        out[type] = score * multiplier;
+      }
+    });
+    return out;
+  }
+
+  /**
+   * Sorts violation types based on their score.
+   *
+   * @param allScores Score list to sort.
+   * @returns {number[]} Sorted list of violation types.
+   */
+  static getSortedKeys(allScores) {
+    const keys = Object.keys(allScores);
+    keys.sort((a, b) => allScores[b] - allScores[a]);
+    return keys.map((x) => parseInt(x, 10));
+  }
 }
 
 module.exports = Recommender;

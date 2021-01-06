@@ -1,3 +1,4 @@
+/* eslint-disable global-require */
 const rewiremock = require("rewiremock/node");
 const supertest = require("supertest");
 const express = require("express");
