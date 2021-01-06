@@ -79,11 +79,11 @@ async function controller(request, response) {
     let userId = request.body.user_id;
 
     if (userId) {
-        let access_token = Authorization.extractAccessToken(request.headers.authorization);
+        let accessToken = Authorization.extractAccessToken(request.headers.authorization);
         user = new User(userId);
 
         // Check if request is authorized
-        if (!(await Authorization.authorizeUser(user, access_token))) {
+        if (!(await Authorization.authorizeUser(user, accessToken))) {
             response.status(StatusCode.ClientErrorForbidden).send();
             return;
         }
