@@ -1,58 +1,68 @@
-const uuid = require("uuid");
-const { StatusCode } = require("status-code-enum")
+/* eslint-disable no-bitwise */
+/* eslint-disable no-use-before-define */
+/* eslint-disable no-underscore-dangle */
+const uuid = require('uuid');
+const { StatusCode } = require('status-code-enum');
 
-const wrapper = require("./assets/wrapper");
-const errors = require("./assets/errors")
-const Authorization = require("../core/authorization");
-const ReportDatabaseHandle = require("../core/database/database-reports");
-const User = require("../models/user");
-const Report = require("../models/report");
-const Location = require("../models/location");
-const FileStorage = require("../core/file-storage");
+const wrapper = require('./assets/wrapper');
+const errors = require('./assets/errors');
+const Authorization = require('../core/authorization');
+const ReportDatabaseHandle = require('../core/database/database-reports');
+const User = require('../models/user');
+const Report = require('../models/report');
+const Location = require('../models/location');
+const FileStorage = require('../core/file-storage');
 
 /**
  * Validator function the report creation endpoint.
  *
+ * @author Lukas Trommer
  * @param request {e.Request}
  * @param response {e.Response}
  * @param next
  */
 function validator(request, response, next) {
-    let valid = true;
-    let userId = request.body.user_id;
+  let valid = true;
+  const userId = request.body.user_id;
 
-    if (userId) {
-        if (!Authorization.validateAuthorizationHeader(request.headers.authorization)) {
-            response.status(StatusCode.ClientErrorUnauthorized).send();
-            return;
-        }
-
-        if (!User.validateID(userId)) {
-            valid = false;
-        }
+  if (userId) {
+    if (
+      !Authorization.validateAuthorizationHeader(request.headers.authorization)
+    ) {
+      response.status(StatusCode.ClientErrorUnauthorized).send();
+      return;
     }
 
-    let report = request.body.report;
-
-    if (report) {
-        valid &= Number.isInteger(report.time);
-
-        let location = report.location;
-        valid &= location && Location.isLatitude(location.latitude) && Location.isLongitude(location.longitude);
-
-        valid &= Number.isInteger(report.violation_type);
-
-        let imageToken = report.image_token;
-        valid &= imageToken && uuid.validate(imageToken)
-    } else {
-        valid = false;
+    if (!User.validateID(userId)) {
+      valid = false;
     }
+  }
 
-    if (!valid) {
-        response.status(StatusCode.ClientErrorBadRequest).send();
-    }
+  const { report } = request.body;
 
-    next();
+  if (report) {
+    valid &= Number.isInteger(report.time);
+
+    const { location } = report;
+    valid
+      &= location
+      && Location.isLatitude(location.latitude)
+      && Location.isLongitude(location.longitude);
+
+    valid &= Number.isInteger(report.violation_type);
+
+    const imageToken = report.image_token;
+    valid &= imageToken && uuid.validate(imageToken);
+  } else {
+    valid = false;
+  }
+
+  if (!valid) {
+    response.status(StatusCode.ClientErrorBadRequest).send();
+    return;
+  }
+
+  next();
 }
 
 exports.validator = wrapper(validator);
@@ -60,6 +70,7 @@ exports.validator = wrapper(validator);
 /**
  * Controller function for the report creation endpoint.
  *
+ * @author Lukas Trommer
  * @param {e.Request} request - An express request object.
  * @param {e.Response} response - An express response object.
  */
@@ -68,12 +79,12 @@ async function controller(request, response) {
     let userId = request.body.user_id;
 
     if (userId) {
-        let access_token = Authorization.extractAccessToken(request.headers.authorization);
+        let accessToken = Authorization.extractAccessToken(request.headers.authorization);
         user = new User(userId);
 
         // Check if request is authorized
-        if (!(await Authorization.authorizeUser(user, access_token))) {
-            response.status(StatusCode.ClientErrorUnauthorized).send();
+        if (!(await Authorization.authorizeUser(user, accessToken))) {
+            response.status(StatusCode.ClientErrorForbidden).send();
             return;
         }
     }
@@ -92,7 +103,7 @@ async function controller(request, response) {
     }
 
     await helper.store();
-    response.status(200).send();
+    response.status(200).end();
 }
 
 exports.controller = wrapper(controller);
@@ -103,37 +114,44 @@ exports.controller = wrapper(controller);
  * @private
  * @author Lukas Trommer
  */
-function _ReportCreationHelper() {
-    this.report = null;
+function _ReportCreationHelper(user) {
+    this.user = user;
 }
 
+/**
+ *
+ * @type {{zipcode: string, violationType: number, location: Location, time: number, user: User, imageToken: string}}
+ */
 _ReportCreationHelper.prototype = {
     user: null,
     violationType: null,
     time: null,
     location: null,
-    imageToken: null
+    imageToken: null,
 }
 
 /**
- * Resolve the provided image token by checking if the corresponding file storage reference contains image files.
+ * Resolve the provided image token by checking if the corresponding file
+ * storage reference contains image files.
  *
- * @returns {Promise<boolean>} <code>true</code> if associated files could be found, <code>false</code> otherwise.
  * @author Lukas Trommer
+ * @returns {Promise<boolean>} <code>true</code> if associated files could be
+ *     found, <code>false</code> otherwise.
  */
 _ReportCreationHelper.prototype.resolveImageToken = async function () {
-    if (this.imageToken) {
-        return await FileStorage.getFilesByToken(this.imageToken).length > 0;
-    } else {
-        throw new Error("No image token specified");
-    }
-}
+  if (this.imageToken) {
+    return (
+      Array.from(await FileStorage.getFilesByToken(this.imageToken)).length > 0
+    );
+  }
+  throw new Error('No image token specified');
+};
 
 /**
  * Create and store a new report from the provided data.
  *
- * @returns {Promise<void>}
  * @author Lukas Trommer
+ * @returns {Promise<void>}
  */
 _ReportCreationHelper.prototype.store = async function () {
     let report = Report.create(this.user, this.violationType, this.time, this.location, this.imageToken);
