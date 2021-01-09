@@ -73,7 +73,7 @@ jobs:
     - name: Submit new container build
       run: gcloud builds submit --tag gcr.io/${{ secrets.GCP_PROJECT_ID }}/image-analysis
     - name: Deploy to GCP
-      run: gcloud run deploy image-analysis --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/image-analysis --no-allow-unauthenticated --region=europe-west3 --platform managed
+      run: gcloud run deploy image-analysis --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/image-analysis --allow-unauthenticated --region=europe-west3 --platform managed
 
 
   build-server:
@@ -81,8 +81,9 @@ jobs:
     defaults:
       run:
         working-directory: server
+    needs: [changes]
     if:
-      github.ref == 'refs/heads/main' || github.ref == 'refs/heads/feature/server'
+      needs.changes.outputs.server == 'true'
     steps:
     - uses: actions/checkout@v2
     - name: Use Node.js 12.x
