@@ -1,4 +1,4 @@
-name: Backend CI
+name: Backend
 
 on: [push, pull_request]
 
@@ -40,14 +40,14 @@ jobs:
       id: cache
       with:
         path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}-${{ hashFiles('**/test-requirements.txt') }}
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install pytest
         pip install -r requirements.txt
+        pip install -r test-requirements.txt
     - name: Test with pytest
-      run: pytest --disable-pytest-warnings --cov=. tests alpr_gcloud_vision/tests/test_main.py alpr_gcloud_vision/tests/license_plate_candidate_test.py
+      run: pytest
 
   
   deploy-alpr:
