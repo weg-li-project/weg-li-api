@@ -74,12 +74,12 @@ jobs:
       run: gcloud builds submit --tag gcr.io/${{ secrets.GCP_PROJECT_ID }}/image-analysis
     - name: Deploy to GCP
       run: gcloud run deploy image-analysis \
-        --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/image-analysis \
+        --image=gcr.io/${{ secrets.GCP_PROJECT_ID }}/image-analysis \
         --allow-unauthenticated \
         --region=europe-west3 \
-        --platform managed \
+        --platform=managed \
         --memory=4G \
-        --set-env-vars WEGLI_IMAGES_BUCKET_NAME=${{ secrets.WEGLI_IMAGES_BUCKET_NAME }}
+        --set-env-vars=WEGLI_IMAGES_BUCKET_NAME=${{ secrets.WEGLI_IMAGES_BUCKET_NAME }}
 
   build-server:
     runs-on: ubuntu-latest
