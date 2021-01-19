@@ -17,16 +17,12 @@ const uuid = require('uuid');
  */
 function Report(id, user, violationType, time, location, imageToken) {
   if (!Report.validateID(id)) {
-    throw new Error('Invalid report ID');
+    throw new Error(`Invalid report ID ${id}`);
   }
 
   // eslint-disable-next-line no-restricted-globals
-  if (isNaN(violationType)) {
-    throw new Error('Violation type must be a numeric identifier');
-  }
-
-  if (!location) {
-    throw new Error('Location not provided');
+  if (isNaN(violationType) || isNaN(time) || !location || !imageToken) {
+    throw new Error();
   }
 
   this.id = id;
@@ -41,11 +37,11 @@ function Report(id, user, violationType, time, location, imageToken) {
  * Creates a new report based on the provided data.
  *
  * @author Lukas Trommer
- * @param user
- * @param violationType
- * @param time
- * @param location
- * @param imageToken
+ * @param user {String}
+ * @param violationType {Number}
+ * @param time {Number}
+ * @param location {Location}
+ * @param imageToken {String}
  * @returns {Report}
  */
 Report.create = function (user, violationType, time, location, imageToken) {

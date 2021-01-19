@@ -1,4 +1,4 @@
-name: Backend CI
+name: Backend
 
 on: [push, pull_request]
 
@@ -8,8 +8,6 @@ jobs:
     outputs:
       server: ${{ steps.filter.outputs.server }}
       alpr: ${{ steps.filter.outputs.alpr }}
-    if:
-      github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     steps:
     - uses: actions/checkout@v2
     - uses: dorny/paths-filter@v2
@@ -26,21 +24,30 @@ jobs:
     defaults:
       run:
         working-directory: wegliML
+    needs: [changes]
     if:
-      github.ref == 'refs/heads/main' || github.ref == 'refs/heads/feature/alpr-gcloud-vision'
+      needs.changes.outputs.alpr == 'true'
     steps:
     - uses: actions/checkout@v2
+      with:
+        submodules: 'recursive'
     - name: Set up Python 3.8
       uses: actions/setup-python@v2
       with:
         python-version: 3.8
+    - name: Cache dependencies
+      uses: actions/cache@v2
+      id: cache
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}-${{ hashFiles('**/test-requirements.txt') }}
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install pytest
         pip install -r requirements.txt
+        pip install -r test-requirements.txt
     - name: Test with pytest
-      run: pytest --disable-pytest-warnings --cov=main tests/test_main.py
+      run: pytest
 
   
   deploy-alpr:
@@ -59,17 +66,29 @@ jobs:
         service_account_key: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
         export_default_credentials: true
     - uses: actions/checkout@v2
+      with:
+        submodules: 'recursive'
+    - name: Copy model data for ALPR
+      run: gsutil -m cp -r gs://${{ secrets.SERVICE_BUCKET_NAME }}/checkpoints ./alpr_yolo_cnn
+    - name: Submit new container build
+      run: gcloud builds submit --tag gcr.io/${{ secrets.GCP_PROJECT_ID }}/image-analysis
     - name: Deploy to GCP
-      run: gcloud functions deploy get_image_analysis_suggestions --trigger-http --runtime=python38 --region=europe-west3 --memory=1G
-
+      run: gcloud run deploy image-analysis \
+        --image=gcr.io/${{ secrets.GCP_PROJECT_ID }}/image-analysis \
+        --allow-unauthenticated \
+        --region=europe-west3 \
+        --platform=managed \
+        --memory=4G \
+        --set-env-vars=WEGLI_IMAGES_BUCKET_NAME=${{ secrets.WEGLI_IMAGES_BUCKET_NAME }}
 
   build-server:
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: server
+    needs: [changes]
     if:
-      github.ref == 'refs/heads/main' || github.ref == 'refs/heads/feature/server'
+      needs.changes.outputs.server == 'true'
     steps:
     - uses: actions/checkout@v2
     - name: Use Node.js 12.x

@@ -57,7 +57,7 @@ UserDatabaseHandle.prototype.deleteUser = async function (
  * @param user The user whose access record should be queried.
  * @returns {Promise<string | null>}
  */
-UserDatabaseHandle.prototype.queryUserAccess = async (user) => {
+UserDatabaseHandle.prototype.queryUserAccess = async function (user) {
   const whereClause = {};
   whereClause[dbConst.DB_TABLE_USER_ACCESS_USER_ID] = user.id;
   const response = await this.database
