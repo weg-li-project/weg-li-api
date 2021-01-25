@@ -4,9 +4,12 @@ const NEAR_RADIUS = 50;
 const WIDE_RADIUS = 2000;
 const REPORTS_AROUND = 200;
 
-const USER_MULTIPLIER = 0.36;
-const LOCATION_MULTIPLIER = 1.64;
+const USER_MULTIPLIER = 0.44;
+const LOCATION_MULTIPLIER = 1.56;
 const COMMON_MULTIPLIER = 0.01;
+
+const LOC_E = 0.1;
+const USER_E = 0.008;
 
 /** TODO - faster sum - faster getMostCommon() */
 
@@ -25,9 +28,10 @@ class Recommender {
    *
    * @param location The location of the new report.
    * @param userId The user identifier for the new report.
+   * @param time
    * @returns {Promise<number[]>} Ordered list array of violation types.
    */
-  async getRecommendations(location, userId = null) {
+  async getRecommendations(location, userId = null, time = null) {
     let allScores = {};
 
     const commonScores = await this.computeMostCommonScores();
@@ -44,8 +48,8 @@ class Recommender {
       LOCATION_MULTIPLIER
     );
 
-    if (userId !== null) {
-      const userScores = await this.computeUserHistoryScores(userId);
+    if (userId && time) {
+      const userScores = await this.computeUserHistoryScores(userId, time);
       allScores = this.constructor.addScores(
         allScores,
         userScores,
@@ -77,22 +81,26 @@ class Recommender {
    * Computes scores based on most common violation types in user's report history.
    *
    * @param userId The user's identifier.
+   * @param time Datetime string of new report.
    * @returns {Promise<{}>} List of violation types and their score.
    */
-  async computeUserHistoryScores(userId) {
-    const userHistory = await this.dbHandle.getUserReports(userId);
+  async computeUserHistoryScores(userId, time) {
+    const { getSecsMidnight } = this.constructor;
+    const { inverseMultiQuadratic } = this.constructor;
 
-    let count = 0;
-    userHistory.forEach((report) => {
-      count += parseInt(report.count, 10);
-    });
+    const userHistory = await this.dbHandle.getAllUserReports(userId);
+    const newSeconds = getSecsMidnight(new Date(time));
 
-    const scores = {};
-    userHistory.forEach((report) => {
-      scores[report.violation_type] = report.count / count;
-    });
+    let sum = 0;
+    userHistory.forEach(function (report, index) {
+      const oldSeconds = getSecsMidnight(new Date(report.time));
+      const timeDiff = Math.abs(newSeconds - oldSeconds);
+      const weight = inverseMultiQuadratic(USER_E, timeDiff);
+      this[index].weight = weight;
+      sum += weight;
+    }, userHistory);
 
-    return scores;
+    return this.constructor.sumWeights(userHistory, sum);
   }
 
   /**
@@ -102,6 +110,8 @@ class Recommender {
    * @returns {Promise<{}>} List of violation types and their score.
    */
   async computeLocationScores(location) {
+    const { inverseQuadratic } = this.constructor;
+
     const count = await this.dbHandle.countNearReports(location, NEAR_RADIUS);
     const reports = await this.dbHandle.getKNN(
       location,
@@ -112,13 +122,15 @@ class Recommender {
     // compute weights
     let sum = 0;
     reports.forEach(function (report, index) {
-      const e = 0.1;
-      const weight = 1 / (1 + e * e * report.distance * report.distance);
+      const weight = inverseQuadratic(LOC_E, report.distance);
       this[index].weight = weight;
       sum += weight;
     }, reports);
 
-    // sum up weights to determine most probable violation type
+    return this.constructor.sumWeights(reports, sum);
+  }
+
+  static sumWeights(reports, sum) {
     const scores = {};
     reports.forEach((report) => {
       if (report.violation_type in scores) {
@@ -127,7 +139,6 @@ class Recommender {
         scores[report.violation_type] = report.weight / sum;
       }
     });
-
     return scores;
   }
 
@@ -162,6 +173,41 @@ class Recommender {
     const keys = Object.keys(allScores);
     keys.sort((a, b) => allScores[b] - allScores[a]);
     return keys.map((x) => parseInt(x, 10));
+  }
+
+  /**
+   * Inverse Multi Quadratic RBF. See https://en.wikipedia.org/wiki/Radial_basis_function
+   *
+   * @param e Shape parameter
+   * @param r Distance
+   * @returns {number} Phi (or weight)
+   */
+  static inverseMultiQuadratic(e, r) {
+    return 1 / Math.sqrt(1 + e * e * r * r);
+  }
+
+  /**
+   * Inverse Quadratic RBF. See https://en.wikipedia.org/wiki/Radial_basis_function
+   *
+   * @param e Shape parameter
+   * @param r Distance
+   * @returns {number} Phi (or weight)
+   */
+  static inverseQuadratic(e, r) {
+    return 1 / (1 + e * e * r * r);
+  }
+
+  /**
+   * Computes seconds from midnight of the current day.
+   *
+   * @param date Datetime object.
+   * @returns {number} Seconds from midnight.
+   */
+  static getSecsMidnight(date) {
+    return (
+      date.getUTCSeconds()
+      + 60 * (date.getUTCMinutes() + 60 * date.getUTCHours())
+    );
   }
 }
 

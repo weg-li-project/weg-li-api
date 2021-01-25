@@ -118,6 +118,7 @@ ReportDatabaseHandle.prototype.getTestReports = async function (
     dbConst.DB_TABLE_REPORTS_ID,
     dbConst.DB_TABLE_REPORTS_USER_ID,
     dbConst.DB_TABLE_REPORTS_VIOLATION_TYPE,
+    dbConst.DB_TABLE_REPORTS_TIME,
     coordinates,
   ];
 
@@ -226,23 +227,27 @@ ReportDatabaseHandle.prototype.countNearReports = async function (
 };
 
 /**
- * @param userId
- * @param transaction
- * @returns {Promise<Knex.QueryBuilder<TRecord, TResult>>}
+ * Returns all reports of given user.
+ *
+ * @param userId The user's identifier.
+ * @param transaction The database transaction in which this request will be performed.
+ * @returns {Promise<Array>} Reports of given user.
  */
-ReportDatabaseHandle.prototype.getUserReports = async function (
+ReportDatabaseHandle.prototype.getAllUserReports = async function (
   userId,
   transaction = this.database.knex
 ) {
-  const selectClause = [dbConst.DB_TABLE_REPORTS_VIOLATION_TYPE];
+  const selectClause = [
+    dbConst.DB_TABLE_REPORTS_VIOLATION_TYPE,
+    dbConst.DB_TABLE_REPORTS_TIME,
+  ];
   const whereClause = {};
   whereClause[dbConst.DB_TABLE_REPORTS_USER_ID] = userId;
 
   return transaction(dbConst.DB_TABLE_REPORTS)
-    .count(dbConst.DB_TABLE_REPORTS_VIOLATION_TYPE)
     .select(selectClause)
     .where(whereClause)
-    .groupBy(dbConst.DB_TABLE_REPORTS_VIOLATION_TYPE);
+    .orderBy(dbConst.DB_TABLE_REPORTS_TIME, 'desc');
 };
 
 module.exports = ReportDatabaseHandle;

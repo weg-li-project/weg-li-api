@@ -35,7 +35,8 @@ async function analyzeData(reports) {
 
       const recommendations = await recommender.getRecommendations(
         location,
-        report.user_id
+        report.user_id,
+        report.time
       );
 
       if (recommendations.includes(type)) {
@@ -73,7 +74,7 @@ function printResults(counter, matches) {
   console.log(`10 recommendations accuracy: ${sumTen.toFixed(2)} %`);
 }
 
-describe.skip('Recommender', () => {
+describe('Recommender', () => {
   describe('#getLocationRecommendations', () => {
     it('shows overall accuracy', async () => {
       initDatabase();
