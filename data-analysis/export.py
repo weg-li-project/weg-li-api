@@ -43,6 +43,17 @@ def read_csv(filename):
                     new["charge"] = int(new.pop("charge_id"))
                 except KeyError:
                     pass
+                try:
+                    if new["severity"] == "standard":
+                        new["severity"] = 0
+                    elif new["severity"] == "hinder":
+                        new["severity"] = 1
+                    elif new["severity"] == "endanger":
+                        new["severity"] = 2
+                    else:
+                        new["severity"] = -1
+                except KeyError:
+                    new["severity"] = -1
                 out.append(new)
             except ValueError:
                 pass
@@ -66,7 +77,7 @@ def import_data(filename):
 
 
 def remove_duplicates(lst):
-    allowed = ["charge", "user_id", "longitude", "latitude", "date"]
+    allowed = ["charge", "user_id", "longitude", "latitude", "date", "severity"]
 
     def is_allowed(item):
         return item[0] in allowed
@@ -93,7 +104,8 @@ def generate_sql(notices):
         violation_time = item["date"]
         latitude = item["latitude"]
         longitude = item["longitude"]
-        query += f"\n('{uuid}', CURRENT_TIMESTAMP, '{user_id}', {violation_type}, '{violation_time}', " \
+        severity = item["severity"]
+        query += f"\n('{uuid}', CURRENT_TIMESTAMP, '{user_id}', {violation_type}, '{severity}', '{violation_time}', " \
                  f"ST_MakePoint({longitude}, {latitude}), NULL),"
     return query[:-1] + ";"
 
