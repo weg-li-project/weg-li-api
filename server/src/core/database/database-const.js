@@ -14,6 +14,7 @@ module.exports = {
   DB_TABLE_REPORTS_USER_ID: 'user_id',
   DB_TABLE_REPORTS_VIOLATION_TYPE: 'violation_type',
   DB_TABLE_REPORTS_TIME: 'time',
+  DB_TABLE_REPORTS_SEVERITY: 'severity',
   DB_TABLE_REPORTS_LOCATION: 'location',
   DB_TABLE_REPORTS_IMAGE_TOKEN: 'image_token',
 

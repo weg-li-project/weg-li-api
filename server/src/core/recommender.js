@@ -11,7 +11,7 @@ const COMMON_MULTIPLIER = 0.01;
 const LOC_E = 0.1;
 const USER_E = 0.008;
 
-/** TODO - faster sum - faster getMostCommon() */
+/** TODO - faster sum - faster getMostCommon() - database trigger */
 
 /**
  * Responsible for creating recommendations based on user history and location.
@@ -57,7 +57,28 @@ class Recommender {
       );
     }
 
-    return this.constructor.getSortedKeys(allScores);
+    return this.appendSeverity(allScores);
+  }
+
+  /**
+   * Appends most common severity to recommendations.
+   *
+   * @param allScores Recommendation scores.
+   * @returns {Promise<[]>} Recommendations (violation type, score, severity).
+   */
+  async appendSeverity(allScores) {
+    const sortedKeys = this.constructor.getSortedKeys(allScores);
+    const out = [];
+    const severity = await this.dbHandle.getMostCommonSeverities();
+
+    sortedKeys.forEach((key) => {
+      const o = {};
+      o.violation_type = parseInt(key, 10);
+      o.score = allScores[key];
+      o.severity = severity[key].severity;
+      out.push(o);
+    });
+    return out;
   }
 
   /**
@@ -167,12 +188,10 @@ class Recommender {
    * Sorts violation types based on their score.
    *
    * @param allScores Score list to sort.
-   * @returns {number[]} Sorted list of violation types.
+   * @returns {{}} Sorted list of violation types.
    */
   static getSortedKeys(allScores) {
-    const keys = Object.keys(allScores);
-    keys.sort((a, b) => allScores[b] - allScores[a]);
-    return keys.map((x) => parseInt(x, 10));
+    return Object.keys(allScores).sort((a, b) => allScores[b] - allScores[a]);
   }
 
   /**

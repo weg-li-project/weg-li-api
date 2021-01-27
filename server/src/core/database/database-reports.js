@@ -119,6 +119,7 @@ ReportDatabaseHandle.prototype.getTestReports = async function (
     dbConst.DB_TABLE_REPORTS_USER_ID,
     dbConst.DB_TABLE_REPORTS_VIOLATION_TYPE,
     dbConst.DB_TABLE_REPORTS_TIME,
+    dbConst.DB_TABLE_REPORTS_SEVERITY,
     coordinates,
   ];
 
@@ -248,6 +249,43 @@ ReportDatabaseHandle.prototype.getAllUserReports = async function (
     .select(selectClause)
     .where(whereClause)
     .orderBy(dbConst.DB_TABLE_REPORTS_TIME, 'desc');
+};
+
+/**
+ * Returns most common severity for given violation type.
+ *
+ * @param transaction The database transaction in which this request will be performed.
+ * @returns {Promise<any>} Most common severity identifier.
+ */
+ReportDatabaseHandle.prototype.getMostCommonSeverities = async function (
+  transaction = this.database.knex
+) {
+  const selectClause = [
+    dbConst.DB_TABLE_REPORTS_SEVERITY,
+    dbConst.DB_TABLE_REPORTS_VIOLATION_TYPE,
+  ];
+
+  const records = await transaction(dbConst.DB_TABLE_REPORTS)
+    .select(selectClause)
+    .count(dbConst.DB_TABLE_REPORTS_SEVERITY)
+    .groupBy(selectClause)
+    .orderBy(dbConst.DB_TABLE_REPORTS_VIOLATION_TYPE);
+
+  const mostCommon = {};
+  records.forEach((o) => {
+    if (o.violation_type in mostCommon) {
+      if (mostCommon[o.violation_type].count < parseInt(o.count)) {
+        mostCommon[o.violation_type].severity = o.severity;
+        mostCommon[o.violation_type].count = parseInt(o.count);
+      }
+    } else {
+      mostCommon[o.violation_type] = {};
+      mostCommon[o.violation_type].severity = o.severity;
+      mostCommon[o.violation_type].count = parseInt(o.count);
+    }
+  });
+
+  return mostCommon;
 };
 
 module.exports = ReportDatabaseHandle;
