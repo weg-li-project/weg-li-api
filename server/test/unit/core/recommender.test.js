@@ -34,7 +34,7 @@ async function analyzeData(reports) {
     async (report) => {
       const location = new Location(report.st_y, report.st_x);
       const type = report.violation_type;
-      const { severityType } = report;
+      const severity = report.severity_type;
 
       const recommendations = await recommender.getRecommendations(
         location,
@@ -46,7 +46,7 @@ async function analyzeData(reports) {
         if (type === recommendations[i].violation_type) {
           matches[i] += 1;
           severityCounter += 1;
-          if (severityType === recommendations[i].severity) {
+          if (severity === recommendations[i].severity) {
             severityMatches += 1;
           }
         }
