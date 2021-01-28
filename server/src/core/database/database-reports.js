@@ -119,7 +119,7 @@ ReportDatabaseHandle.prototype.getTestReports = async function (
     dbConst.DB_TABLE_REPORTS_USER_ID,
     dbConst.DB_TABLE_REPORTS_VIOLATION_TYPE,
     dbConst.DB_TABLE_REPORTS_TIME,
-    dbConst.DB_TABLE_REPORTS_SEVERITY,
+    dbConst.DB_TABLE_REPORTS_SEVERITY_TYPE,
     coordinates,
   ];
 
@@ -136,29 +136,9 @@ ReportDatabaseHandle.prototype.getTestReports = async function (
 ReportDatabaseHandle.prototype.getMostCommonViolations = async function (
   transaction = this.database.knex
 ) {
-  const whereNotNullClause = dbConst.DB_TABLE_REPORTS_VIOLATION_TYPE;
-  const groupClause = dbConst.DB_TABLE_REPORTS_VIOLATION_TYPE;
-  const selectClause = dbConst.DB_TABLE_REPORTS_VIOLATION_TYPE;
-
-  const result = await transaction(dbConst.DB_TABLE_REPORTS)
-    .select(selectClause)
-    .count('* as count')
-    .whereNotNull(whereNotNullClause)
-    .groupBy(groupClause)
-    .orderBy('count', 'desc');
-
-  const mostCommon = [];
-  if (result) {
-    result.forEach((record) => {
-      const violation = record[dbConst.DB_TABLE_REPORTS_VIOLATION_TYPE];
-
-      if (violation) {
-        mostCommon.push(violation);
-      }
-    });
-  }
-
-  return mostCommon;
+  return transaction(dbConst.DB_TABLE_STATS)
+    .select(dbConst.DB_TABLE_STATS_VIOLATION_TYPE)
+    .orderBy(dbConst.DB_TABLE_STATS_VIOLATION_COUNT, 'desc');
 };
 
 /**
@@ -260,29 +240,18 @@ ReportDatabaseHandle.prototype.getAllUserReports = async function (
 ReportDatabaseHandle.prototype.getMostCommonSeverities = async function (
   transaction = this.database.knex
 ) {
-  const selectClause = [
-    dbConst.DB_TABLE_REPORTS_SEVERITY,
-    dbConst.DB_TABLE_REPORTS_VIOLATION_TYPE,
-  ];
+  const subQuery = this.database.knex.raw(
+    '(SELECT array_position(severity_count, max(x)) as severity_type FROM unnest(severity_count) as x)'
+  );
+  const selectClause = [dbConst.DB_TABLE_STATS_VIOLATION_TYPE, subQuery];
 
-  const records = await transaction(dbConst.DB_TABLE_REPORTS)
-    .select(selectClause)
-    .count(dbConst.DB_TABLE_REPORTS_SEVERITY)
-    .groupBy(selectClause)
-    .orderBy(dbConst.DB_TABLE_REPORTS_VIOLATION_TYPE);
+  const records = await transaction(dbConst.DB_TABLE_STATS).select(
+    selectClause
+  );
 
   const mostCommon = {};
   records.forEach((o) => {
-    if (o.violation_type in mostCommon) {
-      if (mostCommon[o.violation_type].count < parseInt(o.count)) {
-        mostCommon[o.violation_type].severity = o.severity;
-        mostCommon[o.violation_type].count = parseInt(o.count);
-      }
-    } else {
-      mostCommon[o.violation_type] = {};
-      mostCommon[o.violation_type].severity = o.severity;
-      mostCommon[o.violation_type].count = parseInt(o.count);
-    }
+    mostCommon[o.violation_type] = o.severity_type;
   });
 
   return mostCommon;

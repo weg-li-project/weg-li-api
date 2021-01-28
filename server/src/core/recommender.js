@@ -75,9 +75,10 @@ class Recommender {
       const o = {};
       o.violation_type = parseInt(key, 10);
       o.score = allScores[key];
-      o.severity = severity[key].severity;
+      o.severity = severity[key];
       out.push(o);
     });
+
     return out;
   }
 
@@ -88,13 +89,12 @@ class Recommender {
    */
   async computeMostCommonScores() {
     const mostCommon = await this.dbHandle.getMostCommonViolations();
-    const len = Object.keys(mostCommon).length;
+    const len = mostCommon.length;
 
     const scores = {};
-    mostCommon.forEach((type) => {
-      scores[type] = (len - mostCommon.indexOf(type)) / ((len * (len + 1)) / 2);
+    mostCommon.forEach((item) => {
+      scores[item.violation_type] = (len - mostCommon.indexOf(item)) / ((len * (len + 1)) / 2);
     });
-
     return scores;
   }
 
