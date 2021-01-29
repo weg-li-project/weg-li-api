@@ -85,7 +85,7 @@ function printResults(counter, matches, severityMatches, severityCounter) {
   );
 }
 
-describe('Recommender', () => {
+describe.skip('Recommender', () => {
   describe('#getLocationRecommendations', () => {
     it('shows overall accuracy', async () => {
       initDatabase();
