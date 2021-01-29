@@ -1,6 +1,6 @@
 const Bluebird = require('bluebird');
 
-const Recommender = require('../../../src/core/recommender');
+const Recommender = require('../../../src/core/recommender/recommender-core');
 const ReportDatabaseHandle = require('../../../src/core/database/database-reports');
 const Location = require('../../../src/models/location');
 const {
@@ -85,7 +85,7 @@ function printResults(counter, matches, severityMatches, severityCounter) {
   );
 }
 
-describe.skip('Recommender', () => {
+describe('Recommender', () => {
   describe('#getLocationRecommendations', () => {
     it('shows overall accuracy', async () => {
       initDatabase();

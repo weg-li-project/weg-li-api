@@ -1,7 +1,7 @@
 const { StatusCode } = require('status-code-enum');
 
 const Location = require('../models/location');
-const Recommender = require('../core/recommender');
+const Recommender = require('../core/recommender/recommender-core');
 const Authorization = require('../core/authorization');
 const User = require('../models/user');
 const wrapper = require('./assets/wrapper');
@@ -73,7 +73,7 @@ async function controller(request, response) {
 
   const recommender = new Recommender();
   const data = await recommender.getRecommendations(location, userId);
-  response.json({ violation: data });
+  response.json(data);
 }
 
 exports.controller = wrapper(controller);

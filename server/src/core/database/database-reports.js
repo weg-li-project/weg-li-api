@@ -131,7 +131,7 @@ ReportDatabaseHandle.prototype.getTestReports = async function (
  *
  * @author Niclas Kühnapfel
  * @param transaction The database transaction in which this request will be performed.
- * @returns {Promise<Array>} The array of records containing violation type and count.
+ * @returns Array The array of records containing violation type and count.
  */
 ReportDatabaseHandle.prototype.getMostCommonViolations = async function (
   transaction = this.database.knex
@@ -249,9 +249,9 @@ ReportDatabaseHandle.prototype.getMostCommonSeverities = async function (
     selectClause
   );
 
-  const mostCommon = {};
-  records.forEach((o) => {
-    mostCommon[o.violation_type] = o.severity_type;
+  const mostCommon = [];
+  records.forEach((record) => {
+    mostCommon[record.violation_type] = record.severity_type;
   });
 
   return mostCommon;
