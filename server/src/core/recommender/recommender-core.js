@@ -1,5 +1,5 @@
 const ReportDatabaseHandle = require('../database/database-reports');
-const Recommendations = require('./recommender-list');
+const RecommendationList = require('./recommender-list');
 const Utils = require('./utils');
 const recConst = require('./recommender-const');
 
@@ -18,13 +18,13 @@ class RecommenderCore {
    * severity for this type. Most probable type on top.
    *
    * @author Niclas Kühnapfel
-   * @param location The location of the new report.
-   * @param userId The user identifier for the new report.
-   * @param time The time of the new report.
-   * @returns {Array} Ordered list of violation types.
+   * @param location - The location of the new report.
+   * @param userId - The user identifier for the new report.
+   * @param time - The time of the new report.
+   * @returns {Array} - Ordered list of violation types.
    */
   async getRecommendations(location, userId = null, time = null) {
-    const recs = new Recommendations();
+    const recs = new RecommendationList();
 
     const severity = await this.dbHandle.getMostCommonSeverities();
     recs.appendSeverity(severity);
@@ -47,7 +47,7 @@ class RecommenderCore {
    * Computes normalized scores based on most common violation types.
    *
    * @author Niclas Kühnapfel
-   * @returns {Array} List of violation types and their scores.
+   * @returns {Array} - List of violation types and their scores.
    */
   async computeMostCommonScores() {
     const mostCommon = await this.dbHandle.getMostCommonViolations();
@@ -65,9 +65,9 @@ class RecommenderCore {
    * Computes scores based on number and time of reports in user's history.
    *
    * @author Niclas Kühnapfel
-   * @param userId The user's identifier.
-   * @param time The datetime string of new report.
-   * @returns {Promise<{}>} List of violation types and their score.
+   * @param userId - The user's identifier.
+   * @param time - The datetime string of new report.
+   * @returns {Promise<{}>} - List of violation types and their score.
    */
   async computeUserHistoryScores(userId, time) {
     const userHistory = await this.dbHandle.getAllUserReports(userId);
@@ -89,8 +89,8 @@ class RecommenderCore {
    * Computes scores based on location of the new report.
    *
    * @author Niclas Kühnapfel
-   * @param location The location of the new report.
-   * @returns {Promise<{}>} List of violation types and their score.
+   * @param location - The location of the new report.
+   * @returns {Promise<{}>} - List of violation types and their score.
    */
   async computeLocationScores(location) {
     const count = await this.dbHandle.countNearReports(
@@ -103,7 +103,6 @@ class RecommenderCore {
       recConst.WIDE_RADIUS
     );
 
-    // compute weights
     let sum = 0;
     reports.forEach(function (report, index) {
       const weight = Utils.inverseQuadratic(recConst.LOC_E, report.distance);
@@ -119,9 +118,9 @@ class RecommenderCore {
    * on the weights of each report.
    *
    * @author Niclas Kühnapfel
-   * @param reports List of reports and corresponding weights.
-   * @param sum Sum over all weights.
-   * @returns {Array} List of violation types and their score.
+   * @param reports - List of reports and corresponding weights.
+   * @param sum - Sum over all weights.
+   * @returns {Array} - List of violation types and their score.
    */
   static sumUpWeights(reports, sum) {
     const out = [];
