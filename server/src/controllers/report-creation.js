@@ -127,7 +127,6 @@ function _ReportCreationHelper(user) {
 
 /**
  * @type {{
- *   zipcode: string;
  *   violationType: number;
  *   location: Location;
  *   time: number;
