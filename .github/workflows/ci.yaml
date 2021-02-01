@@ -42,3 +42,23 @@ jobs:
     - uses: actions/checkout@v2
     - name: Deploy to GCP
       run: gcloud functions deploy api --allow-unauthenticated --trigger-http --runtime=nodejs12 --region=europe-west3 --memory=1G --set-env-vars=DB_NAME=${{ secrets.DB_NAME }},DB_USER=${{ secrets.DB_USER }},DB_PASSWORD=${{ secrets.DB_PASSWORD }},DB_SOCKET_PATH=${{ secrets.DB_SOCKET_PATH }},IMAGE_ANALYSIS_ENDPOINT=${{ secrets.IMAGE_ANALYSIS_ENDPOINT }}
+
+  systemtest:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: server
+    needs: [deploy]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js 12.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
+      - name: Install dependencies
+        run: npm install
+      - run: npm run build --if-present
+      - name: Test system
+        run: npm run systemtest
+        env:
+          CI: true
