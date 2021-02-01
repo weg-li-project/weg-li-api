@@ -41,9 +41,9 @@
   },
   "scripts": {
     "start": "functions-framework --target=api",
-    "test": "nyc mocha --recursive --timeout 5000",
+    "test": "nyc mocha --recursive --timeout 5000 --exclude test/features/**/*",
     "lint": "eslint src --fix && eslint test --fix",
-    "systemtest": "./node_modules/.bin/cucumber-js test/features/"
+	"systemtest": "./node_modules/.bin/cucumber-js test/features/"
   },
   "lint-staged": {
     "{src,test}/**/*.{js,ts}": [
