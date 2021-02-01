@@ -92,21 +92,13 @@ paths:
                     - $ref: '#/components/schemas/Location'
       responses:
         "200":
-          description: ""
+          description: "Returns ordered list of recommendations with their score and corresponding severity type."
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  violation:
-                    type: array
-                    items:
-                      type: string
-                    minItems: 1
-                    maxItems: 5
-                    example:
-                      - no_stopping
-                      - no_parking
+                type: array
+                items:
+                  $ref: '#/components/schemas/Recommendation'
         "400":
           $ref: "#/components/responses/BadRequestError"
         "401":
@@ -324,6 +316,10 @@ components:
           type: number
           format: int32
           example: 1
+        severity_type:
+          type: number
+          format: int32
+          example: 0
         time:
           type: number
           format: int64
@@ -342,3 +338,17 @@ components:
           type: string
         description:
           type: string
+    Recommendation:
+      type: object
+      required:
+        - error
+      properties:
+        violation_type:
+          type: integer
+          example: 6
+        score:
+          type: number
+          example: 0.1563
+        severity_type:
+          type: integer
+          example: 0
