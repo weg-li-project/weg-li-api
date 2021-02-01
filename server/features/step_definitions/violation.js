@@ -30,5 +30,5 @@ When(/^I send a request for violation recommendation$/, async function () {
 });
 
 Then(/^I should get a list of violations$/, function () {
-  assert.strictEqual('violation' in this.violationList, true);
+  assert.strictEqual(this.violationList.length > -1, true);
 });

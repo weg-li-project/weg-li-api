@@ -17,6 +17,7 @@ When(/^I send a request for report generation$/, async function () {
         longitude: 13.370763,
       },
       image_token: this.uploadObject.token,
+      severity_type: 0,
     },
     zipcode: 10711,
   });
