@@ -60,6 +60,20 @@ describe('Report', () => {
     });
   });
 
+  it('should throw error when initialized with invalid severity type', () => {
+    assert.throws(
+      () => new Report(
+        validReport.id,
+        validReport.user,
+        validReport.violationType,
+        validReport.time,
+        validReport.location,
+        validReport.imageToken,
+        'severity-type'
+      )
+    );
+  });
+
   describe('#create', () => {
     it('should return a new Report object with valid ID', () => {
       assert.strictEqual(

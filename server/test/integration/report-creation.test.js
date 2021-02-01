@@ -297,6 +297,30 @@ describe(`POST ${ENDPOINT} (Report Creation)`, async () => {
       .expect({}, done);
   });
 
+  it('should return an HTTP status code 400 (Bad Request) when called without severity type', (done) => {
+    imageTokenExisting = true;
+
+    const mockRequestBody = {
+      user_id: mockUser.id,
+      report: {
+        violation_type: 1,
+        time: Math.floor(Date.now() / 1000),
+        location: {
+          latitude: 52.550127300460765,
+          longitude: 13.37069649848694,
+        },
+        image_token: mockImageToken,
+      },
+    };
+
+    supertest(app)
+      .post(ENDPOINT)
+      .set('Authorization', `Bearer ${mockAccessToken}`)
+      .send(mockRequestBody)
+      .expect(400)
+      .expect({}, done);
+  });
+
   it('should return an HTTP status code 409 (Conflict) when called with non-existent image token', (done) => {
     imageTokenExisting = false;
 
