@@ -86,7 +86,14 @@ DatabaseConfiguration.fromEnvironment = function () {
     configuration.socketPath = process.env.DB_SOCKET_PATH;
   } else if (process.env.HOST) {
     const tcpSocketAddress = process.env.HOST.split(':');
-    [configuration.host, configuration.port] = tcpSocketAddress;
+
+    if (tcpSocketAddress.length === 1) {
+      [configuration.host] = tcpSocketAddress;
+    } else if (tcpSocketAddress.length === 2) {
+      [configuration.host, configuration.port] = tcpSocketAddress;
+    } else {
+      return null;
+    }
   } else {
     return null;
   }

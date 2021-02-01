@@ -1,15 +1,15 @@
-const express = require("express");
-const createUser = require("./controllers/user-creation");
-const deleteUser = require("./controllers/user-deletion");
-const imageUpload = require("./controllers/image-upload");
-const imagesAnalysisResult = require("./controllers/get-images-analysis-result");
-const createDataAnalysis = require("./controllers/create-data-analysis");
-const createReport = require("./controllers/report-creation");
-const districtQuery = require("./controllers/district-query");
-const cors = require("cors");
+const express = require('express');
+const cors = require('cors');
 const swaggerUi = require('swagger-ui-express');
 const fs = require('fs');
 const yaml = require('js-yaml');
+const createUser = require('./controllers/user-creation');
+const deleteUser = require('./controllers/user-deletion');
+const imageUpload = require('./controllers/image-upload');
+const imagesAnalysisResult = require('./controllers/get-images-analysis-result');
+const createDataAnalysis = require('./controllers/create-data-analysis');
+const createReport = require('./controllers/report-creation');
+const districtQuery = require('./controllers/district-query');
 const { Database, DatabaseConfiguration } = require('./core/database/database');
 
 const router = express.Router();
@@ -56,9 +56,18 @@ router.get(
   imagesAnalysisResult.controller
 );
 
-router.post("/analyze/data", createDataAnalysis)
-router.post("/report", createReport.validator, createReport.controller);
-router.get("/report/district/:zipcode", districtQuery.validator, districtQuery.controller);
+router.post(
+  '/analyze/data',
+  createDataAnalysis.validator,
+  createDataAnalysis.controller
+);
+
+router.post('/report', createReport.validator, createReport.controller);
+router.get(
+  '/report/district/:zipcode',
+  districtQuery.validator,
+  districtQuery.controller
+);
 
 // Serving OpenAPI specification
 const yamlSpec = './static/openapi-specification.yaml';
