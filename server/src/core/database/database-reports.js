@@ -47,6 +47,10 @@ ReportDatabaseHandle.prototype.insertReport = async function (
     insertData[dbConst.DB_TABLE_REPORTS_IMAGE_TOKEN] = report.imageToken;
   }
 
+  if (report.severityType !== undefined) {
+    insertData[dbConst.DB_TABLE_REPORTS_SEVERITY_TYPE] = report.severityType;
+  }
+
   await transaction(dbConst.DB_TABLE_REPORTS).insert(insertData);
 };
 

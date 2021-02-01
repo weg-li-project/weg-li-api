@@ -50,6 +50,7 @@ function validator(request, response, next) {
       && Location.isLongitude(location.longitude);
 
     valid &= Number.isInteger(report.violation_type);
+    valid &= Number.isInteger(report.severity_type);
 
     const imageToken = report.image_token;
     valid &= imageToken && uuid.validate(imageToken);
@@ -101,6 +102,7 @@ async function controller(request, response) {
     report.location.longitude
   );
   helper.imageToken = report.image_token;
+  helper.severityType = report.severity_type;
 
   if (!(await helper.resolveImageToken())) {
     response.status(StatusCode.ClientErrorConflict).json(UNKNOWN_IMAGE_TOKEN);
@@ -131,6 +133,7 @@ function _ReportCreationHelper(user) {
  *   time: number;
  *   user: User;
  *   imageToken: string;
+ *   severityType: number;
  * }}
  */
 _ReportCreationHelper.prototype = {
@@ -139,6 +142,7 @@ _ReportCreationHelper.prototype = {
   time: null,
   location: null,
   imageToken: null,
+  severityType: null,
 };
 
 /**
@@ -170,7 +174,8 @@ _ReportCreationHelper.prototype.store = async function () {
     this.violationType,
     this.time,
     this.location,
-    this.imageToken
+    this.imageToken,
+    this.severityType
   );
   const dbHandle = new ReportDatabaseHandle();
   await dbHandle.insertReport(report);

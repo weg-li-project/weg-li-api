@@ -14,14 +14,16 @@ const uuid = require('uuid');
  *     values respectively) of the violation.
  * @param imageToken {String} The image token referring to the provided images
  *     of the violation.
+ * @param severityType The severity of the violation.
  */
-function Report(id, user, violationType, time, location, imageToken) {
+function Report(id, user, violationType, time, location, imageToken, severityType) {
   if (!Report.validateID(id)) {
     throw new Error(`Invalid report ID ${id}`);
   }
 
   // eslint-disable-next-line no-restricted-globals
-  if (isNaN(violationType) || isNaN(time) || !location || !imageToken) {
+  if (isNaN(violationType) || isNaN(time) || isNaN(severityType) || !location
+    || !imageToken) {
     throw new Error();
   }
 
@@ -29,6 +31,7 @@ function Report(id, user, violationType, time, location, imageToken) {
   this.user = user;
   this.violationType = violationType;
   this.time = time;
+  this.severityType = severityType;
   this.location = location;
   this.imageToken = imageToken;
 }
@@ -42,11 +45,12 @@ function Report(id, user, violationType, time, location, imageToken) {
  * @param time {Number}
  * @param location {Location}
  * @param imageToken {String}
+ * @param severityType {Number}
  * @returns {Report}
  */
-Report.create = function (user, violationType, time, location, imageToken) {
+Report.create = function (user, violationType, time, location, imageToken, severityType) {
   const id = uuid.v4();
-  return new Report(id, user, violationType, time, location, imageToken);
+  return new Report(id, user, violationType, time, location, imageToken, severityType);
 };
 
 /**
