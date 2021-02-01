@@ -12,7 +12,8 @@ describe('Report', () => {
     1,
     0,
     new Location(0, 0),
-    uuid.v4()
+    uuid.v4(),
+    0
   );
 
   describe('#constructor', () => {
@@ -24,7 +25,8 @@ describe('Report', () => {
           validReport.violationType,
           validReport.time,
           validReport.location,
-          validReport.imageToken
+          validReport.imageToken,
+          validReport.severityType
         )
       );
     });
@@ -37,7 +39,8 @@ describe('Report', () => {
           'violation-type',
           validReport.time,
           validReport.location,
-          validReport.imageToken
+          validReport.imageToken,
+          validReport.severityType
         )
       );
     });
@@ -50,7 +53,8 @@ describe('Report', () => {
           validReport.violationType,
           validReport.time,
           null,
-          validReport.imageToken
+          validReport.imageToken,
+          validReport.severityType
         )
       );
     });
@@ -65,7 +69,8 @@ describe('Report', () => {
             validReport.violationType,
             validReport.time,
             validReport.location,
-            validReport.imageToken
+            validReport.imageToken,
+            validReport.severityType
           ).id
         ),
         true

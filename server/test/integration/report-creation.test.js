@@ -62,6 +62,7 @@ describe(`POST ${ENDPOINT} (Report Creation)`, async () => {
           longitude: 13.37069649848694,
         },
         image_token: mockImageToken,
+        severity_type: 0,
       },
     };
 
@@ -88,6 +89,7 @@ describe(`POST ${ENDPOINT} (Report Creation)`, async () => {
             longitude: 13.37069649848694,
           },
           image_token: mockImageToken,
+          severity_type: 0,
         },
       };
 
@@ -115,6 +117,7 @@ describe(`POST ${ENDPOINT} (Report Creation)`, async () => {
             longitude: 13.37069649848694,
           },
           image_token: mockImageToken,
+          severity_type: 0,
         },
       };
 
@@ -164,6 +167,7 @@ describe(`POST ${ENDPOINT} (Report Creation)`, async () => {
           longitude: 13.37069649848694,
         },
         image_token: mockImageToken,
+        severity_type: 0,
       },
     };
 
@@ -187,6 +191,7 @@ describe(`POST ${ENDPOINT} (Report Creation)`, async () => {
           longitude: 13.37069649848694,
         },
         image_token: mockImageToken,
+        severity_type: 0,
       },
     };
 
@@ -210,6 +215,7 @@ describe(`POST ${ENDPOINT} (Report Creation)`, async () => {
           longitude: 13.37069649848694,
         },
         image_token: mockImageToken,
+        severity_type: 0,
       },
     };
 
@@ -230,6 +236,7 @@ describe(`POST ${ENDPOINT} (Report Creation)`, async () => {
         violation_type: 1,
         time: Math.floor(Date.now() / 1000),
         image_token: mockImageToken,
+        severity_type: 0,
       },
     };
 
@@ -253,6 +260,7 @@ describe(`POST ${ENDPOINT} (Report Creation)`, async () => {
           latitude: 52.550127300460765,
           longitude: 13.37069649848694,
         },
+        severity_type: 0,
       },
     };
 
@@ -277,6 +285,7 @@ describe(`POST ${ENDPOINT} (Report Creation)`, async () => {
           longitude: 13.37069649848694,
         },
         image_token: 'invalid token',
+        severity_type: 0,
       },
     };
 
@@ -301,6 +310,7 @@ describe(`POST ${ENDPOINT} (Report Creation)`, async () => {
           longitude: 13.37069649848694,
         },
         image_token: mockImageToken,
+        severity_type: 0,
       },
     };
 
