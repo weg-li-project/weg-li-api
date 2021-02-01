@@ -64,7 +64,7 @@ jobs:
         run: npm run systemtest
         env:
           CI: true
-          BASE_URL: https://europe-west3-{{ secrets.GCP_PROJECT_ID }}.cloudfunctions.net/apitest
+          BASE_URL: "https://europe-west3-${{ secrets.GCP_PROJECT_ID }}.cloudfunctions.net/apitest"
 
   deploy:
     runs-on: ubuntu-latest
