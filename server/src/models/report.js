@@ -31,9 +31,9 @@ function Report(
 
   // eslint-disable-next-line no-restricted-globals
   if (
-    Number.isNaN(violationType)
-    || Number.isNaN(time)
-    || Number.isNaN(severityType)
+    Number.isNaN(Number(violationType))
+    || Number.isNaN(Number(time))
+    || Number.isNaN(Number(severityType))
     || !location
     || !imageToken
   ) {
