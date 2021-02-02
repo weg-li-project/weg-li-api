@@ -1,5 +1,4 @@
 const crypto = require('crypto');
-const bcrypt = require('bcrypt');
 const UserDatabaseHandle = require('./database/database-users');
 
 const HTTP_HEADER_MATCH_REGEX = /^Bearer .+$/;
@@ -25,7 +24,7 @@ Authorization.generateAccessToken = function () {
  * @returns {string} The hash value of that access token.
  */
 Authorization.hashAccessToken = function (accessToken) {
-  return bcrypt.hashSync(accessToken, 10);
+  return crypto.createHash('sha256').update(accessToken).digest('hex');
 };
 
 /**
@@ -38,7 +37,7 @@ Authorization.hashAccessToken = function (accessToken) {
  *     provided hash, <code>false</code> otherwise.
  */
 Authorization.compareAccessToken = function (accessToken, hash) {
-  return bcrypt.compareSync(accessToken, hash);
+  return Authorization.hashAccessToken(accessToken) === hash;
 };
 
 /**

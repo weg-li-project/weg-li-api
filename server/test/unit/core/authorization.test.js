@@ -3,7 +3,7 @@
 const assert = require('assert');
 const rewiremock = require('rewiremock/node');
 
-const bcrypt = require('bcrypt');
+const crypto = require('crypto');
 const Authorization = require('../../../src/core/authorization');
 const User = require('../../../src/models/user');
 
@@ -19,10 +19,10 @@ describe('Authorization', () => {
   });
 
   describe('#hashAccessToken', () => {
-    it('should return a valid bcrypt hash of an access token', () => {
+    it('should return a valid hexadecimal encoded SHA-256 hash of an access token', () => {
       assert.strictEqual(
-        bcrypt.compareSync(accessToken, accessTokenHash),
-        true
+        crypto.createHash('sha256').update(accessToken).digest('hex'),
+        accessTokenHash
       );
     });
   });
