@@ -3,10 +3,39 @@ const Bluebird = require('bluebird');
 const Recommender = require('../../../src/core/recommender/recommender-core');
 const ReportDatabaseHandle = require('../../../src/core/database/database-reports');
 const Location = require('../../../src/models/location');
+const dbConst = require('../../../src/core/database/database-const');
+
+const DB_TABLE_TEST_REPORTS = 'reports_test';
+
 const {
   Database,
   DatabaseConfiguration,
 } = require('../../../src/core/database/database');
+
+/**
+ * Returns all reports stored in the test reports table of the database.
+ *
+ * @author Niclas Kühnapfel
+ * @param transaction The database transaction in which this request will be performed.
+ */
+// eslint-disable-next-line func-names
+ReportDatabaseHandle.prototype.getTestReports = async function (
+  transaction = this.database.knex
+) {
+  const coordinates = this.database.knex.raw(
+    'ST_X(location::geometry), ST_Y(location::geometry)'
+  );
+  const selectClause = [
+    dbConst.DB_TABLE_REPORTS_ID,
+    dbConst.DB_TABLE_REPORTS_USER_ID,
+    dbConst.DB_TABLE_REPORTS_VIOLATION_TYPE,
+    dbConst.DB_TABLE_REPORTS_TIME,
+    dbConst.DB_TABLE_REPORTS_SEVERITY_TYPE,
+    coordinates,
+  ];
+
+  return transaction(DB_TABLE_TEST_REPORTS).select(selectClause);
+};
 
 function initDatabase() {
   const configuration = DatabaseConfiguration.forTCPSocket(

@@ -22,6 +22,4 @@ module.exports = {
   DB_TABLE_STATS_VIOLATION_TYPE: 'violation_type',
   DB_TABLE_STATS_VIOLATION_COUNT: 'violation_count',
   DB_TABLE_STATS_SEVERITY_COUNT: 'severity_count',
-
-  DB_TABLE_TEST_REPORTS: 'reports_test',
 };

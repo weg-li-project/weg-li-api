@@ -107,30 +107,6 @@ ReportDatabaseHandle.prototype.deleteUserReports = async function (
 };
 
 /**
- * Returns all reports stored in the test reports table of the database.
- *
- * @author Niclas Kühnapfel
- * @param transaction The database transaction in which this request will be performed.
- */
-ReportDatabaseHandle.prototype.getTestReports = async function (
-  transaction = this.database.knex
-) {
-  const coordinates = this.database.knex.raw(
-    'ST_X(location::geometry), ST_Y(location::geometry)'
-  );
-  const selectClause = [
-    dbConst.DB_TABLE_REPORTS_ID,
-    dbConst.DB_TABLE_REPORTS_USER_ID,
-    dbConst.DB_TABLE_REPORTS_VIOLATION_TYPE,
-    dbConst.DB_TABLE_REPORTS_TIME,
-    dbConst.DB_TABLE_REPORTS_SEVERITY_TYPE,
-    coordinates,
-  ];
-
-  return transaction(dbConst.DB_TABLE_TEST_REPORTS).select(selectClause);
-};
-
-/**
  * Returns the n most common violation types.
  *
  * @author Niclas Kühnapfel
