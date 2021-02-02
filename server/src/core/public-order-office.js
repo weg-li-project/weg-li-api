@@ -1,4 +1,4 @@
-const axios = require('axios');
+const gaxios = require('gaxios');
 const { StatusCode } = require('status-code-enum');
 
 /**
@@ -44,9 +44,9 @@ PublicOrderOfficeResolver.prototype.resolve = async function (zipcode) {
   let response;
 
   try {
-    response = await axios.get(
-      `https://www.weg-li.de/districts/${zipcode}.json`
-    );
+    response = await gaxios.request({
+      url: `https://www.weg-li.de/districts/${zipcode}.json`,
+    });
   } catch (e) {
     if (e.response && e.response.status === StatusCode.ClientErrorNotFound) {
       return null;

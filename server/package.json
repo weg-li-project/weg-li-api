@@ -6,7 +6,6 @@
   "dependencies": {
     "@google-cloud/functions-framework": "^1.7.1",
     "@google-cloud/storage": "^5.5.0",
-    "axios": "^0.21.1",
     "bluebird": "^3.7.2",
     "cors": "^2.8.5",
     "express": "^4.17.1",
@@ -42,7 +41,7 @@
     "start": "functions-framework --target=api",
     "test": "nyc mocha --recursive --timeout 5000 test",
     "lint": "eslint src --fix && eslint test --fix",
-	"systemtest": "./node_modules/.bin/cucumber-js features"
+    "systemtest": "./node_modules/.bin/cucumber-js features"
   },
   "lint-staged": {
     "{src,test}/**/*.{js,ts}": [
