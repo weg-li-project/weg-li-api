@@ -5,7 +5,7 @@ const uuid = require('uuid');
 const { StatusCode } = require('status-code-enum');
 
 const wrapper = require('./assets/wrapper');
-const errors = require('./assets/errors');
+const { UNKNOWN_IMAGE_TOKEN } = require('../models/error-response');
 const Authorization = require('../core/authorization');
 const ReportDatabaseHandle = require('../core/database/database-reports');
 const User = require('../models/user');
@@ -19,7 +19,7 @@ const FileStorage = require('../core/file-storage');
  * @author Lukas Trommer
  * @param request {e.Request}
  * @param response {e.Response}
- * @param next
+ * @param next {*=}
  */
 function validator(request, response, next) {
   let valid = true;
@@ -50,6 +50,7 @@ function validator(request, response, next) {
       && Location.isLongitude(location.longitude);
 
     valid &= Number.isInteger(report.violation_type);
+    valid &= Number.isInteger(report.severity_type);
 
     const imageToken = report.image_token;
     valid &= imageToken && uuid.validate(imageToken);
@@ -75,35 +76,41 @@ exports.validator = wrapper(validator);
  * @param {e.Response} response - An express response object.
  */
 async function controller(request, response) {
-    let user = null;
-    let userId = request.body.user_id;
+  let user = null;
+  const userId = request.body.user_id;
 
-    if (userId) {
-        let accessToken = Authorization.extractAccessToken(request.headers.authorization);
-        user = new User(userId);
+  if (userId) {
+    const accessToken = Authorization.extractAccessToken(
+      request.headers.authorization
+    );
+    user = new User(userId);
 
-        // Check if request is authorized
-        if (!(await Authorization.authorizeUser(user, accessToken))) {
-            response.status(StatusCode.ClientErrorForbidden).send();
-            return;
-        }
+    // Check if request is authorized
+    if (!(await Authorization.authorizeUser(user, accessToken))) {
+      response.status(StatusCode.ClientErrorForbidden).send();
+      return;
     }
+  }
 
-    let helper = new _ReportCreationHelper(user);
+  const helper = new _ReportCreationHelper(user);
 
-    let report = request.body.report;
-    helper.violationType = report.violation_type;
-    helper.time = report.time;
-    helper.location = new Location(report.location.latitude, report.location.longitude);
-    helper.imageToken = report.image_token;
+  const { report } = request.body;
+  helper.violationType = report.violation_type;
+  helper.time = report.time;
+  helper.location = new Location(
+    report.location.latitude,
+    report.location.longitude
+  );
+  helper.imageToken = report.image_token;
+  helper.severityType = report.severity_type;
 
-    if (!(await helper.resolveImageToken())) {
-        response.status(StatusCode.ClientErrorConflict).json(errors.UNKNOWN_IMAGE_TOKEN);
-        return;
-    }
+  if (!(await helper.resolveImageToken())) {
+    response.status(StatusCode.ClientErrorConflict).json(UNKNOWN_IMAGE_TOKEN);
+    return;
+  }
 
-    await helper.store();
-    response.status(200).end();
+  await helper.store();
+  response.status(200).end();
 }
 
 exports.controller = wrapper(controller);
@@ -115,20 +122,27 @@ exports.controller = wrapper(controller);
  * @author Lukas Trommer
  */
 function _ReportCreationHelper(user) {
-    this.user = user;
+  this.user = user;
 }
 
 /**
- *
- * @type {{zipcode: string, violationType: number, location: Location, time: number, user: User, imageToken: string}}
+ * @type {{
+ *   violationType: number;
+ *   location: Location;
+ *   time: number;
+ *   user: User;
+ *   imageToken: string;
+ *   severityType: number;
+ * }}
  */
 _ReportCreationHelper.prototype = {
-    user: null,
-    violationType: null,
-    time: null,
-    location: null,
-    imageToken: null,
-}
+  user: null,
+  violationType: null,
+  time: null,
+  location: null,
+  imageToken: null,
+  severityType: null,
+};
 
 /**
  * Resolve the provided image token by checking if the corresponding file
@@ -154,7 +168,14 @@ _ReportCreationHelper.prototype.resolveImageToken = async function () {
  * @returns {Promise<void>}
  */
 _ReportCreationHelper.prototype.store = async function () {
-    let report = Report.create(this.user, this.violationType, this.time, this.location, this.imageToken);
-    let dbHandle = new ReportDatabaseHandle();
-    await dbHandle.insertReport(report);
-}
+  const report = Report.create(
+    this.user,
+    this.violationType,
+    this.time,
+    this.location,
+    this.imageToken,
+    this.severityType
+  );
+  const dbHandle = new ReportDatabaseHandle();
+  await dbHandle.insertReport(report);
+};

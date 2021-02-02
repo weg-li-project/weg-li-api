@@ -15,7 +15,7 @@ const REQUEST_PARAM_USER_ID = 'user_id';
  * @author Lukas Trommer
  * @param request {e.Request}
  * @param response {e.Response}
- * @param next
+ * @param next {*=}
  */
 function validator(request, response, next) {
   // Check if access token authorization is present

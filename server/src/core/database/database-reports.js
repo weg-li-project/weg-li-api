@@ -47,6 +47,10 @@ ReportDatabaseHandle.prototype.insertReport = async function (
     insertData[dbConst.DB_TABLE_REPORTS_IMAGE_TOKEN] = report.imageToken;
   }
 
+  if (report.severityType !== undefined) {
+    insertData[dbConst.DB_TABLE_REPORTS_SEVERITY_TYPE] = report.severityType;
+  }
+
   await transaction(dbConst.DB_TABLE_REPORTS).insert(insertData);
 };
 
@@ -103,60 +107,18 @@ ReportDatabaseHandle.prototype.deleteUserReports = async function (
 };
 
 /**
- * Returns all reports stored in the test reports table of the database.
- *
- * @author Niclas Kühnapfel
- * @param transaction The database transaction in which this request will be performed.
- */
-ReportDatabaseHandle.prototype.getTestReports = async function (
-  transaction = this.database.knex
-) {
-  const coordinates = this.database.knex.raw(
-    'ST_X(location::geometry), ST_Y(location::geometry)'
-  );
-  const selectClause = [
-    dbConst.DB_TABLE_REPORTS_ID,
-    dbConst.DB_TABLE_REPORTS_USER_ID,
-    dbConst.DB_TABLE_REPORTS_VIOLATION_TYPE,
-    coordinates,
-  ];
-
-  return transaction(dbConst.DB_TABLE_TEST_REPORTS).select(selectClause);
-};
-
-/**
  * Returns the n most common violation types.
  *
  * @author Niclas Kühnapfel
  * @param transaction The database transaction in which this request will be performed.
- * @returns {Promise<Array>} The array of records containing violation type and count.
+ * @returns Array The array of records containing violation type and count.
  */
 ReportDatabaseHandle.prototype.getMostCommonViolations = async function (
   transaction = this.database.knex
 ) {
-  const whereNotNullClause = dbConst.DB_TABLE_REPORTS_VIOLATION_TYPE;
-  const groupClause = dbConst.DB_TABLE_REPORTS_VIOLATION_TYPE;
-  const selectClause = dbConst.DB_TABLE_REPORTS_VIOLATION_TYPE;
-
-  const result = await transaction(dbConst.DB_TABLE_REPORTS)
-    .select(selectClause)
-    .count('* as count')
-    .whereNotNull(whereNotNullClause)
-    .groupBy(groupClause)
-    .orderBy('count', 'desc');
-
-  const mostCommon = [];
-  if (result) {
-    result.forEach((record) => {
-      const violation = record[dbConst.DB_TABLE_REPORTS_VIOLATION_TYPE];
-
-      if (violation) {
-        mostCommon.push(violation);
-      }
-    });
-  }
-
-  return mostCommon;
+  return transaction(dbConst.DB_TABLE_STATS)
+    .select(dbConst.DB_TABLE_STATS_VIOLATION_TYPE)
+    .orderBy(dbConst.DB_TABLE_STATS_VIOLATION_COUNT, 'desc');
 };
 
 /**
@@ -226,23 +188,53 @@ ReportDatabaseHandle.prototype.countNearReports = async function (
 };
 
 /**
- * @param userId
- * @param transaction
- * @returns {Promise<Knex.QueryBuilder<TRecord, TResult>>}
+ * Returns all reports of given user.
+ *
+ * @param userId The user's identifier.
+ * @param transaction The database transaction in which this request will be performed.
+ * @returns {Promise<Array>} Reports of given user.
  */
-ReportDatabaseHandle.prototype.getUserReports = async function (
+ReportDatabaseHandle.prototype.getAllUserReports = async function (
   userId,
   transaction = this.database.knex
 ) {
-  const selectClause = [dbConst.DB_TABLE_REPORTS_VIOLATION_TYPE];
+  const selectClause = [
+    dbConst.DB_TABLE_REPORTS_VIOLATION_TYPE,
+    dbConst.DB_TABLE_REPORTS_TIME,
+  ];
   const whereClause = {};
   whereClause[dbConst.DB_TABLE_REPORTS_USER_ID] = userId;
 
   return transaction(dbConst.DB_TABLE_REPORTS)
-    .count(dbConst.DB_TABLE_REPORTS_VIOLATION_TYPE)
     .select(selectClause)
     .where(whereClause)
-    .groupBy(dbConst.DB_TABLE_REPORTS_VIOLATION_TYPE);
+    .orderBy(dbConst.DB_TABLE_REPORTS_TIME, 'desc');
+};
+
+/**
+ * Returns most common severity for given violation type.
+ *
+ * @param transaction The database transaction in which this request will be performed.
+ * @returns {Promise<any>} Most common severity identifier.
+ */
+ReportDatabaseHandle.prototype.getMostCommonSeverities = async function (
+  transaction = this.database.knex
+) {
+  const subQuery = this.database.knex.raw(
+    '(SELECT array_position(severity_count, max(x)) as severity_type FROM unnest(severity_count) as x)'
+  );
+  const selectClause = [dbConst.DB_TABLE_STATS_VIOLATION_TYPE, subQuery];
+
+  const records = await transaction(dbConst.DB_TABLE_STATS).select(
+    selectClause
+  );
+
+  const mostCommon = [];
+  records.forEach((record) => {
+    mostCommon[record.violation_type] = record.severity_type;
+  });
+
+  return mostCommon;
 };
 
 module.exports = ReportDatabaseHandle;

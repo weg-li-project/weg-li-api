@@ -1,9 +1,9 @@
-const { StatusCode } = require("status-code-enum")
+const { StatusCode } = require('status-code-enum');
 
-const wrapper = require("./assets/wrapper");
-const { PublicOrderOfficeResolver } = require("../core/public-order-office");
+const wrapper = require('./assets/wrapper');
+const { PublicOrderOfficeResolver } = require('../core/public-order-office');
 
-const REQUEST_PARAM_ZIPCODE = "zipcode";
+const REQUEST_PARAM_ZIPCODE = 'zipcode';
 const ZIPCODE_REGEX = /^\d{5}$/;
 
 /**
@@ -11,17 +11,17 @@ const ZIPCODE_REGEX = /^\d{5}$/;
  *
  * @param request {e.Request}
  * @param response {e.Response}
- * @param next
+ * @param next {*=}
  */
-function validator(request, response, next) {
-    let zipcode = request.params[REQUEST_PARAM_ZIPCODE];
+async function validator(request, response, next) {
+  const zipcode = request.params[REQUEST_PARAM_ZIPCODE];
 
-    if (!zipcode.match(ZIPCODE_REGEX)) {
-        response.status(StatusCode.ClientErrorBadRequest).end();
-        return;
-    }
+  if (!zipcode.match(ZIPCODE_REGEX)) {
+    response.status(StatusCode.ClientErrorBadRequest).end();
+    return;
+  }
 
-    next();
+  next();
 }
 
 exports.validator = wrapper(validator);
@@ -33,20 +33,22 @@ exports.validator = wrapper(validator);
  * @param response {e.Response}
  */
 async function controller(request, response) {
-    let zipcode = request.params[REQUEST_PARAM_ZIPCODE];
-    const publicOrderOffice = await new PublicOrderOfficeResolver().resolve(zipcode);
+  const zipcode = request.params[REQUEST_PARAM_ZIPCODE];
+  const publicOrderOffice = await new PublicOrderOfficeResolver().resolve(
+    zipcode
+  );
 
-    if (!publicOrderOffice) {
-        response.status(StatusCode.ClientErrorNotFound).end();
-        return;
-    }
+  if (!publicOrderOffice) {
+    response.status(StatusCode.ClientErrorNotFound).end();
+    return;
+  }
 
-    response.status(200).json({
-        "public_order_office": {
-            "name": publicOrderOffice.name,
-            "email_address": publicOrderOffice.emailAddress
-        }
-    });
+  response.status(200).json({
+    public_order_office: {
+      name: publicOrderOffice.name,
+      email_address: publicOrderOffice.emailAddress,
+    },
+  });
 }
 
 exports.controller = wrapper(controller);

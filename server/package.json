@@ -20,6 +20,7 @@
     "uuid": "^8.3.1"
   },
   "devDependencies": {
+    "@cucumber/cucumber": "^7.0.0",
     "@types/express": "^4.17.9",
     "@types/supertest": "^2.0.10",
     "eslint": "^7.17.0",
@@ -39,8 +40,9 @@
   },
   "scripts": {
     "start": "functions-framework --target=api",
-    "test": "nyc mocha --recursive --timeout 5000",
-    "lint": "eslint src --fix && eslint test --fix"
+    "test": "nyc mocha --recursive --timeout 5000 test",
+    "lint": "eslint src --fix && eslint test --fix",
+	"systemtest": "./node_modules/.bin/cucumber-js features"
   },
   "lint-staged": {
     "{src,test}/**/*.{js,ts}": [
@@ -54,6 +56,6 @@
       "pre-commit": "lint-staged"
     }
   },
-  "author": "Lukas Trommer, Jacob Rödel",
+  "author": "Lukas Trommer, Niclas Kühnapfel",
   "license": "ISC"
 }

@@ -92,21 +92,13 @@ paths:
                     - $ref: '#/components/schemas/Location'
       responses:
         "200":
-          description: ""
+          description: "Returns ordered list of recommendations with their score and corresponding severity type."
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  violation:
-                    type: array
-                    items:
-                      type: string
-                    minItems: 1
-                    maxItems: 5
-                    example:
-                      - no_stopping
-                      - no_parking
+                type: array
+                items:
+                  $ref: '#/components/schemas/ViolationSuggestion'
         "400":
           $ref: "#/components/responses/BadRequestError"
         "401":
@@ -172,7 +164,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Suggestions"
+                $ref: "#/components/schemas/CarSuggestions"
         "400":
           $ref: "#/components/responses/BadRequestError"
         "404":
@@ -200,8 +192,6 @@ paths:
                   $ref: '#/components/schemas/UserID'
                 report:
                   $ref: "#/components/schemas/Report"
-                zipcode:
-                  type: string
       responses:
         "200":
           description: The operation was successful.
@@ -287,7 +277,7 @@ components:
           format: double
           description: The longitude value of the location's coordinates.
           example: 13.370763
-    Suggestions:
+    CarSuggestions:
       type: object
       properties:
         suggestions:
@@ -317,6 +307,20 @@ components:
                 type: string
               description: Suggestions for the color. Empty list when no color recognized.
               example: ['blue', 'white']
+    ViolationSuggestion:
+      type: object
+      required:
+        - error
+      properties:
+        violation_type:
+          type: integer
+          example: 6
+        score:
+          type: number
+          example: 0.1563
+        severity_type:
+          type: integer
+          example: 0
     Report:
       type: object
       properties:
@@ -324,6 +328,10 @@ components:
           type: number
           format: int32
           example: 1
+        severity_type:
+          type: number
+          format: int32
+          example: 0
         time:
           type: number
           format: int64
