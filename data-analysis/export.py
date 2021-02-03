@@ -35,7 +35,7 @@ def read_csv(filename):
         out = []
         for item in data[1:]:
             new = dict(zip(data[0], item))
-            new["date"] = new["date"][0:19]
+            new["date"] = new["date"]
             try:
                 new["longitude"] = float(new["longitude"])
                 new["latitude"] = float(new["latitude"])
