@@ -34,8 +34,8 @@ class RecommenderList {
    */
   addScores(scores, multiplier) {
     scores.forEach((value, type) => {
-      const index = this.getIndex(parseInt(type));
-      if (value !== undefined) {
+      if (value != null) {
+        const index = this.getIndex(type);
         this.lst[index].score += value * multiplier;
       }
     });
@@ -49,7 +49,9 @@ class RecommenderList {
    */
   appendSeverity(severity) {
     severity.forEach((value, type) => {
-      this.lst[this.getIndex(type)].severity = value;
+      if (value != null) {
+        this.lst[this.getIndex(type)].severity = value;
+      }
     });
   }
 
