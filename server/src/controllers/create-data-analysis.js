@@ -25,6 +25,9 @@ function validator(request, response, next) {
   }
 
   const { location } = request.body;
+  const { time } = request.body;
+
+  valid = valid && Number.isInteger(time);
 
   if (location) {
     valid = valid
@@ -59,6 +62,7 @@ async function controller(request, response) {
   );
 
   const userId = request.body.user_id;
+  const { time } = request.body;
   const { authorization } = request.headers;
 
   if (userId) {
@@ -66,13 +70,13 @@ async function controller(request, response) {
     const user = new User(userId);
 
     if (!(await Authorization.authorizeUser(user, accessToken))) {
-      response.status(StatusCode.ClientErrorUnauthorized).send();
+      response.status(StatusCode.ClientErrorForbidden).send();
       return;
     }
   }
 
   const recommender = new Recommender();
-  const data = await recommender.getRecommendations(location, userId);
+  const data = await recommender.getRecommendations(location, userId, time);
   response.json(data);
 }
 
