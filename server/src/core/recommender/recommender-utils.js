@@ -1,5 +1,5 @@
 /** Utilities for recommender core. */
-class Utils {
+class RecommenderUtils {
   /**
    * Inverse Multi Quadratic RBF. https://en.wikipedia.org/wiki/Radial_basis_function
    *
@@ -36,4 +36,4 @@ class Utils {
   }
 }
 
-module.exports = Utils;
+module.exports = RecommenderUtils;

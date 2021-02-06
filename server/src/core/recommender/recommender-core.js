@@ -1,6 +1,6 @@
 const ReportDatabaseHandle = require('../database/database-reports');
 const RecommendationList = require('./recommender-list');
-const Utils = require('./utils');
+const Utils = require('./recommender-utils');
 const recConst = require('./recommender-const');
 
 /**

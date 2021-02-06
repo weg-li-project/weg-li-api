@@ -2,7 +2,7 @@ const { Storage } = require('@google-cloud/storage');
 const uuid = require('uuid');
 
 const EXPIRATION_TIME = 15 * 60 * 1000; // 15 minutes
-const BUCKET_NAME = process.env.WEGLI_IMAGES_BUCKET_NAME;
+const BUCKET_NAME = process.env.WEGLI_IMAGES_BUCKET_NAME || 'weg-li_images';
 const DELIMITER = '/';
 
 const storage = new Storage();
