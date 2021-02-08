@@ -1,7 +1,10 @@
 from argparse import ArgumentParser
-
+from secrets import token_hex
+from hashlib import sha256
 from mapping import *
 from uuid import uuid4
+from time import time
+from json import dumps
 import csv
 
 
@@ -91,7 +94,28 @@ def get_uuid(uuids, name):
     return uuids[name]
 
 
-def generate_sql(notices):
+def generate_token():
+    token = token_hex(32)
+    hash = sha256(token.encode()).hexdigest()
+    return token, hash
+
+
+def generate_auth_sql(uuids):
+    user_list = {}
+    users_query = "INSERT INTO users VALUES "
+    user_access_query = "INSERT INTO user_access VALUES "
+    for old_id in uuids:
+        id = int(old_id)
+        token, hash = generate_token()
+        user_list[id] = {}
+        user_list[id]["user_id"] = str(uuids[old_id])
+        user_list[id]["access_token"] = token
+        users_query += f"\n('{uuids[old_id]}', TO_TIMESTAMP({int(time())})),"
+        user_access_query += f"\n('{uuids[old_id]}', '{hash}'),"
+    return user_list, users_query, user_access_query
+
+
+def generate_report_sql(notices):
     uuids = {}
     query = "INSERT INTO reports VALUES "
     for item in notices:
@@ -107,23 +131,30 @@ def generate_sql(notices):
         severity = item["severity"]
         query += f"\n('{uuid}', CURRENT_TIMESTAMP, '{user_id}', {violation_type}, '{severity}', '{violation_time}', " \
                  f"ST_MakePoint({longitude}, {latitude}), NULL),"
-    return query[:-1] + ";"
+    return query[:-1] + ";", uuids
 
 
 def main():
     parser = ArgumentParser(description="Generate SQL import file containing weg-li and/or wegeheld datasets")
     parser.add_argument("-d", "--data", nargs="+", help="data files", required=True)
-    parser.add_argument("-o", "--output", help="output file")
+    parser.add_argument("-u", "--users", help="enables export of user data", action="store_true")
     args = parser.parse_args()
 
     data = []
     for file in args.data:
         data += import_data(file)
 
-    if len(data) and args.output:
-        query = generate_sql(data)
-        with open(args.output, "w") as f:
-            f.write(query)
+    if len(data):
+        query, uuids = generate_report_sql(data)
+        if args.users:
+            user_list, users_query, user_access_query = generate_auth_sql(uuids)
+            with open("export.sql", "w") as f:
+                f.write(query[:-1] + ";\n" + users_query[:-1] + ";\n" + user_access_query[:-1] + ";")
+            with open("users.json", "w") as f:
+                f.write(dumps(user_list, sort_keys=True, indent=4))
+        else:
+            with open("export.sql", "w") as f:
+                f.write(query)
     else:
         print("couldn't import/export data")
 
