@@ -155,7 +155,6 @@ def main():
     parser.add_argument("-c", "--coordinates", nargs=4, type=float, help="coordinate filter")
     parser.add_argument("--wegeheld", action="store_true", help="wegeheld data file")
     parser.add_argument("--wegli", action="store_true", help="weg-li data file")
-    parser.add_argument("-r", "--replace", action="store_true", help="replace violation types with current weg-li types")
     parser.add_argument("-l", "--legend", action="store_true", help="export legend")
     args = parser.parse_args()
 
@@ -169,15 +168,13 @@ def main():
 
     if args.wegeheld:
         data = read_wegeheld_csv(args.file, rect_filter)
-        if args.replace:
-            data = replace_types(data, wegeheld_mapping)
+        data = replace_types(data, wegeheld_mapping)
     elif args.wegli:
         if ".csv" in args.file:
             data = read_wegli_csv(args.file, rect_filter)
         else:
             data = read_wegli_json(args.file, rect_filter)
-        if args.replace:
-            data = replace_types(data, wegli_mapping)
+        data = replace_types(data, wegli_mapping)
     else:
         print("Please set wegeheld or weg-li flag")
         parser.print_help()
