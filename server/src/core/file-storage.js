@@ -111,7 +111,7 @@ class FileStorage {
       throw new Error('Invalid image token.');
     }
     try {
-      await bucket.deleteFiles({ directory: `${imageToken}/`, force: true });
+      await bucket.deleteFiles({ prefix: `${imageToken}/`, force: true });
     } catch (error) {
       throw new Error(
         `Couldn't delete all files linked to the provided image token "${imageToken}".`
