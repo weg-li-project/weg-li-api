@@ -2,10 +2,13 @@ const assert = require('assert');
 const gaxios = require('gaxios');
 
 const fs = require('fs');
-const FileStorage = require('../../../src/core/file-storage');
+const FileStorage = require('../../src/core/file-storage');
+const { needsGoogleIntegration } = require('../helpers/skipper');
 
-describe.skip('FileStorage', () => {
-  process.env.GOOGLE_APPLICATION_CREDENTIALS = '<location_service_account_file>';
+describe('FileStorage', () => {
+  before(function fun() {
+    needsGoogleIntegration(this);
+  });
 
   describe('#deleteImagesByToken', () => {
     const fileStorage = FileStorage;
@@ -18,7 +21,9 @@ describe.skip('FileStorage', () => {
         method: 'PUT',
         url: uploadUrl,
         headers: { 'Content-Type': 'image/jpeg' },
-        data: fs.readFileSync(`${__dirname}/pixel.jpg`).toString('binary'),
+        data: fs
+          .readFileSync(`${__dirname}/../assets/pixel.jpg`)
+          .toString('binary'),
       };
       await gaxios.request(options);
       let files = await fileStorage.getFilesByToken(token);

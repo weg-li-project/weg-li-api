@@ -4,6 +4,7 @@ const Recommender = require('../../../src/core/recommender/recommender-core');
 const ReportDatabaseHandle = require('../../../src/core/database/database-reports');
 const Location = require('../../../src/models/location');
 const dbConst = require('../../../src/core/database/database-const');
+const { needsPerformanceTestFlag } = require('../../helpers/skipper');
 
 const DB_TABLE_TEST_REPORTS = 'reports_test';
 
@@ -114,9 +115,11 @@ function printResults(counter, matches, severityMatches, severityCounter) {
   );
 }
 
-describe.skip('Recommender', () => {
+describe('Recommender', () => {
   describe('#getLocationRecommendations', () => {
-    it('shows overall accuracy', async () => {
+    it('shows overall accuracy', async function () {
+      needsPerformanceTestFlag(this);
+
       initDatabase();
       const dbHandle = new ReportDatabaseHandle();
       const testReports = await dbHandle.getTestReports();
