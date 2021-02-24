@@ -11,7 +11,7 @@ describe('FileStorage', () => {
   });
 
   describe('#deleteImagesByToken', () => {
-    const fileStorage = FileStorage;
+    const fileStorage = FileStorage.shared;
 
     it('should delete all images specified by the given token', async () => {
       const token = '21defa36-8370-442b-bac1-95986faba28f';

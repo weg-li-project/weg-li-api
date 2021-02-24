@@ -17,13 +17,17 @@ const bucket = storage.bucket(BUCKET_NAME);
  * folder name on the used storage solution.
  */
 class FileStorage {
+  constructor(bucketReference) {
+    this.bucket = bucketReference;
+  }
+
   /**
    * Gets a list of all files related to the specified image token.
    *
    * @param {String} imageToken - An image token in UUID v4 format.
    * @returns {Promise<string[]>} List of all related files.
    */
-  static async getFilesByToken(imageToken) {
+  async getFilesByToken(imageToken) {
     const options = {
       prefix:
         imageToken[imageToken.length - 1] === '/'
@@ -32,7 +36,7 @@ class FileStorage {
       delimiter: DELIMITER,
     };
 
-    const [files] = await bucket.getFiles(options);
+    const [files] = await this.bucket.getFiles(options);
 
     return files.map((file) => file.name);
   }
@@ -46,9 +50,9 @@ class FileStorage {
    *
    * @returns {Promise<string[]>} Array of signed urls
    */
-  static async getUploadUrls(imageToken, amount) {
+  async getUploadUrls(imageToken, amount) {
     const urls = [];
-    for (let i = 0; i < amount; i++) {
+    for (let i = 0; i < amount; i += 1) {
       const signedUploadUrl = this.getUploadUrl(
         `${imageToken}/${i.toString()}.jpg`
       );
@@ -64,14 +68,14 @@ class FileStorage {
    * @param {String} filename - Name of the file.
    * @returns {Promise<string>} Upload url
    */
-  static async getUploadUrl(filename) {
+  async getUploadUrl(filename) {
     const options = {
       version: 'v4',
       action: 'write',
       expires: Date.now() + EXPIRATION_TIME,
       contentType: 'image/jpeg',
     };
-    const [url] = await bucket.file(filename).getSignedUrl(options);
+    const [url] = await this.bucket.file(filename).getSignedUrl(options);
 
     return url;
   }
@@ -84,7 +88,7 @@ class FileStorage {
    * @param imageTokens - A list of image tokens in UUID v4 format.
    * @returns {Promise<void>}
    */
-  static async deleteImagesByTokens(imageTokens) {
+  async deleteImagesByTokens(imageTokens) {
     try {
       await Promise.all(
         imageTokens.map((token) => this.deleteImagesByToken(token))
@@ -106,12 +110,12 @@ class FileStorage {
    * @throws {Error}
    * @returns {Promise<void>}
    */
-  static async deleteImagesByToken(imageToken) {
+  async deleteImagesByToken(imageToken) {
     if (!uuid.validate(imageToken)) {
       throw new Error('Invalid image token.');
     }
     try {
-      await bucket.deleteFiles({ prefix: `${imageToken}/`, force: true });
+      await this.bucket.deleteFiles({ prefix: `${imageToken}/`, force: true });
     } catch (error) {
       throw new Error(
         `Couldn't delete all files linked to the provided image token "${imageToken}".`
@@ -124,13 +128,13 @@ class FileStorage {
    *
    * @returns {Promise<string>} A unique image token
    */
-  static async getUniqueImageToken() {
+  async getUniqueImageToken() {
     let imageToken = uuid.v4();
-    let files = await FileStorage.getFilesByToken(imageToken);
+    let files = await this.getFilesByToken(imageToken);
     while (files.length !== 0) {
       imageToken = uuid.v4();
       // eslint-disable-next-line no-await-in-loop
-      files = await FileStorage.getFilesByToken(imageToken);
+      files = await this.getFilesByToken(imageToken);
     }
     return imageToken;
   }
@@ -142,7 +146,7 @@ class FileStorage {
    * @throws {Error}
    * @returns {Promise<string[]>} - List of Cloud Storage urls.
    */
-  static async getFileUrlsByToken(imageToken) {
+  async getFileUrlsByToken(imageToken) {
     if (!uuid.validate(imageToken)) {
       throw new Error('Invalid image token.');
     }
@@ -154,5 +158,7 @@ class FileStorage {
     return cloudStorageUrls;
   }
 }
+
+FileStorage.shared = new FileStorage(bucket);
 
 module.exports = FileStorage;

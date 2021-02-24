@@ -34,6 +34,7 @@ describe(`POST ${ENDPOINT} (Report Creation)`, async () => {
 
   // Rewire file storage
   RewiredFileStorage.getFilesByToken = async (imageToken) => (imageTokenExisting ? ['some image url'] : []);
+  RewiredFileStorage.shared = RewiredFileStorage;
 
   before(() => {
     rewiremock('../../src/core/authorization.js').with(RewiredAuthorization);

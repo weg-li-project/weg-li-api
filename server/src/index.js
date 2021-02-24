@@ -5,17 +5,17 @@ const fs = require('fs');
 const yaml = require('js-yaml');
 const createUser = require('./controllers/user-creation');
 const deleteUser = require('./controllers/user-deletion');
-const imageUpload = require('./controllers/image-upload');
-const imagesAnalysisResult = require('./controllers/get-images-analysis-result');
-const createDataAnalysis = require('./controllers/create-data-analysis');
+const uploadImage = require('./controllers/image-upload');
+const analyzeImage = require('./controllers/image-analysis');
+const analyzeData = require('./controllers/data-analysis');
 const createReport = require('./controllers/report-creation');
-const districtQuery = require('./controllers/district-query');
+const queryDistrict = require('./controllers/district-query');
 const { Database, DatabaseConfiguration } = require('./core/database/database');
 
 const router = express.Router();
 
-// Restrict CORS to localhost and weg-li.de
-const corsOptions = { origin: ['localhost', /\.weg-li.de$/] };
+// Restrict CORS to localhost and weg.li
+const corsOptions = { origin: ['localhost', /\.weg-li.de$/, /\.weg.li$/] };
 router.use(cors(corsOptions));
 
 // Only redirect to secure http route when in production environment
@@ -47,36 +47,38 @@ router.delete('/user/:user_id', deleteUser.validator, deleteUser.controller);
 router.post('/user', createUser.controller);
 router.get(
   '/analyze/image/upload',
-  imageUpload.validator,
-  imageUpload.controller
+  uploadImage.validator,
+  uploadImage.controller
 );
 router.get(
   '/analyze/image/:imageToken',
-  imagesAnalysisResult.validator,
-  imagesAnalysisResult.controller
+  analyzeImage.validator,
+  analyzeImage.controller
 );
 
-router.post(
-  '/analyze/data',
-  createDataAnalysis.validator,
-  createDataAnalysis.controller
-);
+router.post('/analyze/data', analyzeData.validator, analyzeData.controller);
 
 router.post('/report', createReport.validator, createReport.controller);
 router.get(
   '/report/district/:zipcode',
-  districtQuery.validator,
-  districtQuery.controller
+  queryDistrict.validator,
+  queryDistrict.controller
 );
 
 // Serving OpenAPI specification
 const yamlSpec = './static/openapi-specification.yaml';
-const swaggerDocument = yaml.load(
-  fs.readFileSync(yamlSpec, { encoding: 'utf-8' })
-);
+let swaggerDocument = null;
+const loadSwaggerDocument = () => {
+  if (swaggerDocument === null) {
+    swaggerDocument = yaml.load(
+      fs.readFileSync(yamlSpec, { encoding: 'utf-8' })
+    );
+  }
+  return swaggerDocument;
+};
 const options = { explorer: true };
 router.use('/docs', swaggerUi.serve);
-router.get('/docs', swaggerUi.setup(swaggerDocument, options));
+router.get('/docs', (request, response) => swaggerUi.setup(loadSwaggerDocument(), options)(request, response));
 
 router.use((req, res) => {
   res.status(404).send();

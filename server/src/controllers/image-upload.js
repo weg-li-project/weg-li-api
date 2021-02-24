@@ -1,5 +1,5 @@
 const { query } = require('express-validator');
-const FileStorage = require('../core/file-storage');
+const FileStorage = require('../core/file-storage').shared;
 const { validate } = require('./assets/validate');
 const wrapper = require('./assets/wrapper');
 

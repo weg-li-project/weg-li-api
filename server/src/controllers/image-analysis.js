@@ -2,7 +2,7 @@ const { param } = require('express-validator');
 const gaxios = require('gaxios');
 const { validate } = require('./assets/validate');
 
-const FileStorage = require('../core/file-storage');
+const FileStorage = require('../core/file-storage').shared;
 const wrapper = require('./assets/wrapper');
 
 const { IMAGE_ANALYSIS_ENDPOINT } = process.env;
@@ -15,7 +15,7 @@ const { IMAGE_ANALYSIS_ENDPOINT } = process.env;
  *     request object.
  * @param {e.Response} response - An express response object.
  */
-async function getImageAnalysisResults(request, response) {
+async function getImageAnalysis(request, response) {
   const { imageToken } = request.params;
 
   const fileUrls = await FileStorage.getFileUrlsByToken(imageToken);
@@ -30,6 +30,6 @@ async function getImageAnalysisResults(request, response) {
 const validator = [param('imageToken').exists().isUUID('4'), validate];
 
 module.exports = {
-  controller: wrapper(getImageAnalysisResults),
+  controller: wrapper(getImageAnalysis),
   validator,
 };

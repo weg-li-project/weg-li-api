@@ -5,7 +5,7 @@ const User = require('../models/user');
 const Authorization = require('../core/authorization');
 const UserDatabaseHandle = require('../core/database/database-users');
 const ReportDatabaseHandle = require('../core/database/database-reports');
-const FileStorage = require('../core/file-storage');
+const FileStorage = require('../core/file-storage').shared;
 
 const REQUEST_PARAM_USER_ID = 'user_id';
 

@@ -11,7 +11,7 @@ const ReportDatabaseHandle = require('../core/database/database-reports');
 const User = require('../models/user');
 const Report = require('../models/report');
 const Location = require('../models/location');
-const FileStorage = require('../core/file-storage');
+const FileStorage = require('../core/file-storage').shared;
 
 /**
  * Validator function the report creation endpoint.
