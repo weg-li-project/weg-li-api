@@ -1,8 +1,7 @@
 const express = require('express');
+
 const cors = require('cors');
 const swaggerUi = require('swagger-ui-express');
-const fs = require('fs');
-const yaml = require('js-yaml');
 const createUser = require('./controllers/user-creation');
 const deleteUser = require('./controllers/user-deletion');
 const uploadImage = require('./controllers/image-upload');
@@ -10,6 +9,7 @@ const analyzeImage = require('./controllers/image-analysis');
 const analyzeData = require('./controllers/data-analysis');
 const createReport = require('./controllers/report-creation');
 const queryDistrict = require('./controllers/district-query');
+const exploreSwagger = require('./controllers/swagger-explorer');
 const { Database, DatabaseConfiguration } = require('./core/database/database');
 
 const router = express.Router();
@@ -65,20 +65,8 @@ router.get(
   queryDistrict.controller
 );
 
-// Serving OpenAPI specification
-const yamlSpec = './static/openapi-specification.yaml';
-let swaggerDocument = null;
-const loadSwaggerDocument = () => {
-  if (swaggerDocument === null) {
-    swaggerDocument = yaml.load(
-      fs.readFileSync(yamlSpec, { encoding: 'utf-8' })
-    );
-  }
-  return swaggerDocument;
-};
-const options = { explorer: true };
 router.use('/docs', swaggerUi.serve);
-router.get('/docs', (request, response) => swaggerUi.setup(loadSwaggerDocument(), options)(request, response));
+router.get('/docs', exploreSwagger.controller);
 
 router.use((req, res) => {
   res.status(404).send();
