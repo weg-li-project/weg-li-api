@@ -55,13 +55,12 @@ PublicOrderOfficeResolver.prototype.resolve = async function (zipcode) {
   }
 
   if (response.data) {
-    const { name } = response.data;
-    const emailAddress = response.data.email;
+    const { name, email } = response.data;
 
-    if (!name || !emailAddress) {
+    if (!name || !email) {
       return null;
     }
-    return new PublicOrderOffice(name, emailAddress);
+    return new PublicOrderOffice(name, email);
   }
   throw new Error(
     'Invalid remote server response while resolving public order office'
