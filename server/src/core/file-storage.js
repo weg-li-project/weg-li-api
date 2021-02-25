@@ -2,7 +2,7 @@ const { Storage } = require('@google-cloud/storage');
 const uuid = require('uuid');
 
 const EXPIRATION_TIME = 15 * 60 * 1000; // 15 minutes
-const BUCKET_NAME = process.env.WEGLI_IMAGES_BUCKET_NAME || 'weg-li_images';
+const BUCKET_NAME = process.env.WEGLI_IMAGES_BUCKET_NAME || 'bucket_name';
 const DELIMITER = '/';
 
 const storage = new Storage();
@@ -29,10 +29,7 @@ class FileStorage {
    */
   async getFilesByToken(imageToken) {
     const options = {
-      prefix:
-        imageToken[imageToken.length - 1] === '/'
-          ? imageToken
-          : `${imageToken}/`,
+      prefix: `${imageToken}/`,
       delimiter: DELIMITER,
     };
 
