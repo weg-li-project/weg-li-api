@@ -3,6 +3,8 @@ const { Then, When, Given } = require('@cucumber/cucumber');
 const assert = require('assert');
 const gaxios = require('gaxios');
 
+const FIVE_MINUTES_MS = 5 * 60 * 1000;
+
 Given(/^the API url "(.*)"$/, function (url) {
   this.url = this.getAbsoluteUrl(url);
 });
@@ -43,13 +45,12 @@ Given(/^a request body with the file "(.*)"$/, function (filepath) {
   this.body = fs.createReadStream(`${__dirname}/../assets/${filepath}`);
 });
 
-When(/^I send a "(.*)" request to the url$/, async function (method) {
+When(/^I send a "(.*)" request to the url$/, { timeout: FIVE_MINUTES_MS }, async function (method) {
   const options = {
     method,
     url: this.url,
     headers: {
       Authorization: this.access_token ? `Bearer ${this.access_token}` : undefined,
-      // eslint-disable-next-line no-nested-ternary
       ...this.headers,
     },
     data: this.body ? this.body : undefined,
