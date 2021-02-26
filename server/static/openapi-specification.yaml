@@ -320,15 +320,15 @@ components:
       type: object
       properties:
         violation_type:
-          type: number
+          type: integer
           format: int32
           example: 1
         severity_type:
-          type: number
+          type: integer
           format: int32
           example: 0
         time:
-          type: number
+          type: integer
           format: int64
           example: 1606756404
           description: The date and time of the violation as Unix timestamp (in seconds since epoch).
