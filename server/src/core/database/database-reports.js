@@ -18,6 +18,7 @@ function ReportDatabaseHandle(database = Database.shared) {
  * @param transaction
  * @returns {Promise<void>}
  */
+// eslint-disable-next-line func-names
 ReportDatabaseHandle.prototype.insertReport = async function (
   report,
   transaction = this.database.knex
@@ -62,6 +63,7 @@ ReportDatabaseHandle.prototype.insertReport = async function (
  * @param transaction The database transaction in which this request will be performed.
  * @returns {Promise<any[String]>} The string array of image tokens.
  */
+// eslint-disable-next-line func-names
 ReportDatabaseHandle.prototype.queryUserReportImageTokens = async function (
   user,
   transaction = this.database.knex
@@ -97,6 +99,7 @@ ReportDatabaseHandle.prototype.queryUserReportImageTokens = async function (
  * @param transaction The database transaction in which this request will be performed.
  * @returns {Promise<void>}
  */
+// eslint-disable-next-line func-names
 ReportDatabaseHandle.prototype.deleteUserReports = async function (
   user,
   transaction = this.database.knex
@@ -110,9 +113,11 @@ ReportDatabaseHandle.prototype.deleteUserReports = async function (
  * Returns the n most common violation types.
  *
  * @author Niclas Kühnapfel
- * @param transaction The database transaction in which this request will be performed.
- * @returns Array The array of records containing violation type and count.
+ * @param transaction - The database transaction in which this request will be
+ *     performed.
+ * @returns {Array} - The array of records containing violation type and count.
  */
+// eslint-disable-next-line func-names
 ReportDatabaseHandle.prototype.getMostCommonViolations = async function (
   transaction = this.database.knex
 ) {
@@ -125,12 +130,14 @@ ReportDatabaseHandle.prototype.getMostCommonViolations = async function (
  * Returns k nearest neighbors of given location.
  *
  * @author Niclas Kühnapfel
- * @param location The center location of ROI.
- * @param number The number of neighbors to search for.
- * @param maxRadius The maximum distance for search.
- * @param transaction The database transaction in which this request will be performed.
- * @returns {Promise<Array>} The neighbors.
+ * @param location - The center location of ROI.
+ * @param number - The number of neighbors to search for.
+ * @param maxRadius - The maximum distance for search.
+ * @param transaction - The database transaction in which this request will be
+ *     performed.
+ * @returns {Promise<Array>} - The neighbors.
  */
+// eslint-disable-next-line func-names
 ReportDatabaseHandle.prototype.getKNN = async function (
   location,
   number,
@@ -167,11 +174,13 @@ ReportDatabaseHandle.prototype.getKNN = async function (
  * Counts the number of reports in the area.
  *
  * @author Niclas Kühnapfel
- * @param location The center location of ROI.
- * @param radius Tha radius of ROI.
- * @param transaction The database transaction in which this request will be performed.
- * @returns {Promise<Number>} Number of reports in ROI.
+ * @param location - The center location of ROI.
+ * @param radius - The radius of ROI.
+ * @param transaction - The database transaction in which this request will be
+ *     performed.
+ * @returns {Promise<Number>} - Number of reports in ROI.
  */
+// eslint-disable-next-line func-names
 ReportDatabaseHandle.prototype.countNearReports = async function (
   location,
   radius,
@@ -190,10 +199,13 @@ ReportDatabaseHandle.prototype.countNearReports = async function (
 /**
  * Returns all reports of given user.
  *
- * @param userId The user's identifier.
- * @param transaction The database transaction in which this request will be performed.
- * @returns {Promise<Array>} Reports of given user.
+ * @author Niclas Kühnapfel
+ * @param userId - The user's identifier.
+ * @param transaction - The database transaction in which this request will be
+ *     performed.
+ * @returns {Promise<Array>} - Reports of given user.
  */
+// eslint-disable-next-line func-names
 ReportDatabaseHandle.prototype.getAllUserReports = async function (
   userId,
   transaction = this.database.knex
@@ -214,9 +226,12 @@ ReportDatabaseHandle.prototype.getAllUserReports = async function (
 /**
  * Returns most common severity for given violation type.
  *
- * @param transaction The database transaction in which this request will be performed.
- * @returns {Promise<any>} Most common severity identifier.
+ * @author Niclas Kühnapfel
+ * @param transaction - The database transaction in which this request will be
+ *     performed.
+ * @returns {Promise<any>} - Most common severity identifier.
  */
+// eslint-disable-next-line func-names
 ReportDatabaseHandle.prototype.getMostCommonSeverities = async function (
   transaction = this.database.knex
 ) {
