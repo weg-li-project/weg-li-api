@@ -22,7 +22,7 @@ The script creates two files:
 psql -h HOST -p PORT -d DBNAME -U USER -f export.sql
 ```
 
-`user.json` contains the old user ID (key) and corresponding new user ID with its access token.
+`user.json` contains the old user ID (key) and corresponding new user ID with its access token:
 ```json
 {
   "1": {
