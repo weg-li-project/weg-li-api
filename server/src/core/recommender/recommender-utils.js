@@ -3,6 +3,7 @@ class RecommenderUtils {
   /**
    * Inverse Multi Quadratic RBF. https://en.wikipedia.org/wiki/Radial_basis_function
    *
+   * @author Niclas Kühnapfel
    * @param e The shape parameter.
    * @param r The distance.
    * @returns {number} Phi (or weight).
@@ -14,6 +15,7 @@ class RecommenderUtils {
   /**
    * Inverse Quadratic RBF. https://en.wikipedia.org/wiki/Radial_basis_function
    *
+   * @author Niclas Kühnapfel
    * @param e The shape parameter.
    * @param r The distance.
    * @returns {number} Phi (or weight).
@@ -25,6 +27,7 @@ class RecommenderUtils {
   /**
    * Computes seconds from midnight of the current day.
    *
+   * @author Niclas Kühnapfel
    * @param date The datetime object.
    * @returns {number} Seconds from midnight.
    */

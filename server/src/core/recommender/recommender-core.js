@@ -74,6 +74,7 @@ class RecommenderCore {
     const newSeconds = Utils.getSecsMidnight(new Date(time));
 
     let sum = 0;
+    // eslint-disable-next-line func-names
     userHistory.forEach(function (report, index) {
       const oldSeconds = Utils.getSecsMidnight(new Date(report.time));
       const timeDiff = Math.abs(newSeconds - oldSeconds);
@@ -104,6 +105,7 @@ class RecommenderCore {
     );
 
     let sum = 0;
+    // eslint-disable-next-line func-names
     reports.forEach(function (report, index) {
       const weight = Utils.inverseQuadratic(recConst.LOC_E, report.distance);
       this[index].weight = weight;
