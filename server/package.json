@@ -42,7 +42,7 @@
     "start": "functions-framework --target=api",
     "test": "nyc mocha --recursive --timeout 5000 test",
     "lint": "eslint src --fix && eslint test --fix",
-    "systemtest": "./node_modules/.bin/cucumber-js features"
+    "systemtest": "./node_modules/.bin/cucumber-js --publish-quiet features"
   },
   "lint-staged": {
     "{src,test}/**/*.{js,ts}": [
